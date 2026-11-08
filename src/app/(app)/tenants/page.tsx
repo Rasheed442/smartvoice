@@ -422,7 +422,7 @@ export default function TenantsPage() {
         className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.09),transparent_70%)] dark:bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.14),transparent_70%)]"
       />
 
-      <div className="relative mx-auto flex max-w-[1400px] flex-col gap-6 p-5 sm:p-6 lg:p-8">
+      <div className="relative  flex flex-col gap-6 p-5 sm:p-6 lg:p-8">
         {/* Header */}
         <header className="tn-rise flex flex-wrap items-end justify-between gap-4">
           <div>

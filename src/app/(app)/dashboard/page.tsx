@@ -11,6 +11,7 @@ type Stat = {
   decimals: number;
   suffix?: string;
   delta: string;
+  context?: string;
   tone: "good" | "bad" | "muted";
   trend?: "up" | "down";
   icon: IconName;
@@ -24,7 +25,8 @@ const STATS: Stat[] = [
     label: "Total Tenants",
     value: 24,
     decimals: 0,
-    delta: "+2 this month",
+    delta: "+2",
+    context: "This month",
     tone: "good",
     trend: "up",
     icon: "tenants",
@@ -38,6 +40,7 @@ const STATS: Stat[] = [
     decimals: 1,
     suffix: "K",
     delta: "12.4%",
+    context: "vs last month",
     tone: "good",
     trend: "up",
     icon: "subscribers",
@@ -62,6 +65,7 @@ const STATS: Stat[] = [
     value: 142,
     decimals: 0,
     delta: "12",
+    context: "vs yesterday",
     tone: "bad",
     trend: "up",
     icon: "alert",
@@ -213,7 +217,7 @@ function smoothPath(xs: number[], ys: number[]) {
 }
 
 const card =
-  "rounded-md border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.10)] " +
+  "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.10)] " +
   "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
 
 function Arrow({ up = true }: { up?: boolean }) {
@@ -226,7 +230,7 @@ function Arrow({ up = true }: { up?: boolean }) {
 
 function Pill({ tone, children }: { tone: keyof typeof PILL; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${PILL[tone]}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-light ring-1 ring-inset ${PILL[tone]}`}>
       {children}
     </span>
   );
@@ -234,69 +238,73 @@ function Pill({ tone, children }: { tone: keyof typeof PILL; children: ReactNode
 
 /* ────────────────────────────── Stat card ────────────────────────────── */
 
-function Sparkline({ data, id, color }: { data: number[]; id: string; color: string }) {
-  const w = 200;
-  const h = 56;
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const xs = data.map((_, i) => (i / (data.length - 1)) * w);
-  const ys = data.map((v) => h - 8 - ((v - min) / (max - min || 1)) * (h - 22));
-  const line = smoothPath(xs, ys);
+/**
+ * Divider visibility per cell for the three layouts:
+ * 1 column (default) → horizontal lines between rows
+ * 2 columns (sm)      → one vertical + one horizontal
+ * 4 columns (xl)      → vertical lines only
+ */
+const DIVIDERS = [
+  { h: "hidden", v: "hidden" },
+  { h: "block sm:hidden", v: "hidden sm:block" },
+  { h: "block xl:hidden", v: "hidden xl:block" },
+  { h: "block xl:hidden", v: "hidden sm:block" }
+];
 
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="sv-fade h-14 w-full" aria-hidden="true">
-      <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path d={`${line} L${w},${h} L0,${h} Z`} fill={`url(#${id})`} />
-      <path d={line} fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
-function StatCard({ stat, index }: { stat: Stat; index: number }) {
+function StatCell({ stat, index }: { stat: Stat; index: number }) {
   const shown = useCountUp(stat.value, stat.decimals);
-  return (
-    <div
-      className={`sv-rise group relative overflow-hidden ${card} pt-5`}
-      style={{ animationDelay: `${120 + index * 70}ms` }}
-    >
-      {/* Soft accent glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full opacity-[0.14] blur-2xl transition-opacity duration-500 group-hover:opacity-25 dark:opacity-[0.18]"
-        style={{ background: stat.to }}
-      />
+  const d = DIVIDERS[index];
+  const line = "pointer-events-none absolute bg-slate-200/90 dark:bg-slate-800";
 
-      <div className="relative flex items-start justify-between px-5">
-        <p className="text-[16px] text-slate-500 font-light dark:text-slate-400">{stat.label}</p>
+  return (
+    <div className="group relative p-6 transition-colors duration-300 hover:bg-slate-50/60 dark:hover:bg-white/[0.012]">
+      {/* Inset dividers: they stop short of the card edges */}
+      <span aria-hidden="true" className={`${line} inset-y-5 left-0 w-px ${d.v}`} />
+      <span aria-hidden="true" className={`${line} inset-x-5 top-0 h-px ${d.h}`} />
+
+      {/* Accent hairline along the top edge of each cell */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-[2px] overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(90deg, ${stat.from}, ${stat.to} 45%, transparent 100%)` }}
+        />
+        {/* Slow light that travels along the line */}
         <span
-          className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ring-1 ring-black/5"
+          className="sv-sweep absolute inset-y-0 left-0 w-2/5"
           style={{
-            background: `linear-gradient(140deg, ${stat.from}, ${stat.to})`,
-            boxShadow: `0 8px 18px -8px ${stat.to}, inset 0 1px 0 rgba(255,255,255,0.35)`
+            background: `linear-gradient(90deg, transparent, ${stat.from}, ${stat.to}, transparent)`,
+            animationDelay: `${index * 0.7}s`
+          }}
+        />
+      </div>
+
+      <div className="flex items-start justify-between">
+        <p className="text-sm font-light text-slate-500 dark:text-slate-400">{stat.label}</p>
+        <span
+          className="flex h-10 w-10 items-center justify-center rounded-xl"
+          style={{
+            backgroundColor: `${stat.to}12`,
+            color: stat.to,
+            boxShadow: `inset 0 0 0 1px ${stat.to}26`
           }}
         >
-          <Icon name={stat.icon} className="h-[18px] w-[18px]" strokeWidth={1.8} />
+          <Icon name={stat.icon} className="h-[18px] w-[18px]" strokeWidth={1.7} />
         </span>
       </div>
 
-      <div className="relative mt-4 flex items-center gap-3 px-5">
-        <span className="text-[32px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
-          {shown}
-          {stat.suffix}
-        </span>
+      <p className="mt-5 text-[34px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
+        {shown}
+        {stat.suffix}
+      </p>
+
+      <div className="mt-4 flex items-center gap-2.5">
         <Pill tone={stat.tone}>
           {stat.trend && <Arrow up={stat.trend === "up"} />}
           {stat.delta}
         </Pill>
-      </div>
-
-      <div className="relative mt-5">
-        <Sparkline data={stat.spark} id={`spark-${index}`} color={stat.to} />
+        {stat.context && (
+          <span className="text-xs text-slate-400 dark:text-slate-500">{stat.context}</span>
+        )}
       </div>
     </div>
   );
@@ -705,6 +713,8 @@ export default function DashboardPage() {
         @keyframes sv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes sv-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes sv-sweep { 0% { transform: translateX(-100%); opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { transform: translateX(250%); opacity: 0; } }
+        .sv-sweep { animation: sv-sweep 5s cubic-bezier(.4,0,.2,1) infinite; }
         @keyframes sv-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
         .sv-grow { transform-box: fill-box; transform-origin: 50% 100%; animation: sv-grow .8s cubic-bezier(.22,1,.36,1) backwards; }
         @keyframes sv-bar { from { transform: scaleY(0.15); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
@@ -716,6 +726,7 @@ export default function DashboardPage() {
           .sv-rise, .sv-fade { animation: none; opacity: 1; }
           .sv-draw { animation: none; stroke-dashoffset: 0; }
           .sv-bar, .sv-grow { animation: none; }
+          .sv-sweep { animation: none; opacity: 0; }
         }
       `}</style>
 
@@ -725,7 +736,7 @@ export default function DashboardPage() {
         className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.09),transparent_70%)] dark:bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.14),transparent_70%)]"
       />
 
-      <div className="relative mx-auto flex max-w-[1400px] flex-col gap-8 p-5 sm:p-6 lg:p-8">
+      <div className="relative mx-auto flex  flex-col gap-8 p-5 sm:p-6 lg:p-8">
         {/* Header */}
         <header className="sv-rise flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -736,15 +747,19 @@ export default function DashboardPage() {
               Real-time health and business activity across the platform.
             </p>
           </div>
-          <p className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs text-slate-500 backdrop-blur dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
+          <p className="rounded border border-slate-300 bg-white/70 px-3 py-1.5 text-xs text-slate-500 backdrop-blur dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
             Updated just now
           </p>
         </header>
 
         {/* Stats */}
-        <section aria-label="Key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section
+          aria-label="Key metrics"
+          className={`sv-rise ${card} grid grid-cols-1 overflow-hidden sm:grid-cols-2 xl:grid-cols-4`}
+          style={{ animationDelay: "120ms" }}
+        >
           {STATS.map((s, i) => (
-            <StatCard key={s.label} stat={s} index={i} />
+            <StatCell key={s.label} stat={s} index={i} />
           ))}
         </section>
 
@@ -753,7 +768,7 @@ export default function DashboardPage() {
           <div className={`sv-rise ${card} p-6 xl:col-span-8`} style={{ animationDelay: "420ms" }}>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h3 className="text-sm text-slate-500 dark:text-slate-400 font-light">Subscriber growth</h3>
+                <h3 className="text-sm text-slate-500 dark:text-slate-400">Subscriber growth</h3>
                 <div className="mt-2 flex items-center gap-3">
                   <span className="text-[30px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
                     {TOTAL_SUBS.toFixed(1)}K
@@ -775,9 +790,9 @@ export default function DashboardPage() {
                 { k: "Best period", v: `+${series.added[peakIdx].toFixed(1)}K`, s: series.labels[peakIdx] }
               ].map((m) => (
                 <div key={m.k} className="px-4 py-3">
-                  <p className="text-xs text-slate-400 dark:text-slate-500">{m.k}</p>
+                  <p className="text-[14px] text-slate-400 dark:text-slate-500">{m.k}</p>
                   <p className="mt-1 text-[17px] font-medium tabular-nums text-slate-900 dark:text-white">{m.v}</p>
-                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{m.s}</p>
+                  <p className="mt-0.5 text-[14px] text-slate-400 dark:text-slate-500">{m.s}</p>
                 </div>
               ))}
             </div>
@@ -790,7 +805,7 @@ export default function DashboardPage() {
           <div className={`sv-rise ${card} p-6 xl:col-span-4`} style={{ animationDelay: "500ms" }}>
             <div className="mb-6">
               <h3 className="text-sm text-slate-500 dark:text-slate-400">Subscription status</h3>
-              <p className="mt-2 text-[17px] font-medium text-slate-900 dark:text-white">
+              <p className="mt-2 text-[17px] font-light text-slate-900 dark:text-white">
                 Share of subscribers by state
               </p>
             </div>
@@ -806,7 +821,7 @@ export default function DashboardPage() {
         >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-800">
             <div>
-              <h3 className="text-base font-medium text-slate-900 dark:text-white">Operational health</h3>
+              <h3 className="text-base font-light text-slate-900 dark:text-white">Operational health</h3>
               <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                 Status of connected services and gateways
               </p>
@@ -840,7 +855,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-base font-medium text-slate-900 dark:text-white">Recent activity</h3>
-              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-0.5 text-sm text-slate-400 font-light dark:text-slate-400">
                 Latest changes across tenants and the system
               </p>
             </div>
