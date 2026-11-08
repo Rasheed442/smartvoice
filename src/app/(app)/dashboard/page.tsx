@@ -84,18 +84,22 @@ const RANGES = [
   { key: "90", label: "90D" }
 ];
 
-const SERIES: Record<string, { labels: string[]; values: number[] }> = {
+/** Net new subscribers per bucket (K). Totals are derived from TOTAL_SUBS. */
+const SERIES: Record<string, { labels: string[]; added: number[]; unit: string }> = {
   "7": {
     labels: ["Nov 17", "Nov 18", "Nov 19", "Nov 20", "Nov 21", "Nov 22", "Nov 23"],
-    values: [826.3, 829.1, 832.8, 836.0, 838.5, 840.9, 842.6]
+    added: [3.1, 2.8, 3.7, 3.2, 2.5, 2.4, 1.7],
+    unit: "per day"
   },
   "30": {
-    labels: ["Nov 1", "Nov 5", "Nov 10", "Nov 15", "Nov 20", "Nov 23"],
-    values: [749.6, 772.8, 797.4, 819.1, 835.0, 842.6]
+    labels: ["Nov 4", "Nov 8", "Nov 12", "Nov 16", "Nov 20", "Nov 23"],
+    added: [17.9, 19.6, 18.4, 16.2, 13.1, 7.8],
+    unit: "per 4 days"
   },
   "90": {
-    labels: ["Aug 25", "Sep 10", "Sep 25", "Oct 10", "Oct 25", "Nov 10", "Nov 23"],
-    values: [690.4, 716.2, 738.9, 762.5, 790.0, 822.4, 842.6]
+    labels: ["Sep 7", "Sep 21", "Oct 5", "Oct 19", "Nov 2", "Nov 16", "Nov 23"],
+    added: [22.4, 23.9, 21.7, 24.6, 25.8, 22.5, 11.3],
+    unit: "per 2 weeks"
   }
 };
 
@@ -302,44 +306,41 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
 
 const W = 720;
 const H = 320;
-const PL = 52;
-const PR = 20;
-const PT = 20;
+const PL = 46;
+const PR = 16;
+const PT = 16;
 const PB = 34;
 
 function GrowthChart({ range }: { range: string }) {
-  const { labels, values } = SERIES[range];
+  const { labels, added } = SERIES[range];
   const [hover, setHover] = useState<number | null>(null);
 
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min;
-  const step = span < 40 ? 10 : span < 120 ? 25 : 50;
-  const lo = Math.floor((min - step * 0.5) / step) * step;
-  const hi = Math.ceil((max + step * 0.5) / step) * step;
+  const n = added.length;
+  const sum = added.reduce((a, b) => a + b, 0);
+  const startTotal = TOTAL_SUBS - sum;
+  const avg = sum / n;
+  const max = Math.max(...added);
+  const step = max <= 5 ? 1 : max <= 15 ? 5 : 10;
+  const hi = Math.ceil((max * 1.12) / step) * step;
   const ticks: number[] = [];
-  for (let t = lo; t <= hi; t += step) ticks.push(t);
+  for (let t = 0; t <= hi; t += step) ticks.push(t);
 
-  const yOf = (v: number) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB);
-  const xs = values.map((_, i) => PL + (i / (values.length - 1)) * (W - PL - PR));
-  const ys = values.map(yOf);
+  const yOf = (v: number) => PT + (1 - v / hi) * (H - PT - PB);
+  const slot = (W - PL - PR) / n;
+  const barW = Math.min(48, slot * 0.5);
+  const cx = (i: number) => PL + slot * i + slot / 2;
+  const last = n - 1;
+  const active = hover ?? last;
 
-  const line = smoothPath(xs, ys);
-  const area = `${line} L${xs[xs.length - 1]},${H - PB} L${xs[0]},${H - PB} Z`;
-  const last = values.length - 1;
+  const cumulative = (i: number) =>
+    startTotal + added.slice(0, i + 1).reduce((a, b) => a + b, 0);
 
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * W;
-    let best = 0;
-    xs.forEach((px, i) => {
-      if (Math.abs(px - x) < Math.abs(xs[best] - x)) best = i;
-    });
-    setHover(best);
+    const idx = Math.min(n - 1, Math.max(0, Math.floor((x - PL) / slot)));
+    setHover(idx);
   };
-
-  const hv = hover !== null ? hover : null;
-  const change = hv !== null && hv > 0 ? values[hv] - values[hv - 1] : null;
 
   return (
     <div
@@ -348,16 +349,15 @@ function GrowthChart({ range }: { range: string }) {
       onPointerMove={onMove}
       onPointerLeave={() => setHover(null)}
     >
-      <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" role="img" aria-label="Subscriber growth over time">
+      <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" role="img" aria-label="Net new subscribers per period">
         <defs>
-          <linearGradient id="sv-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.30" />
-            <stop offset="60%" stopColor="#6366F1" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="sv-line" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient id="sv-bar-on" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#818CF8" />
-            <stop offset="100%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#4F46E5" />
+          </linearGradient>
+          <linearGradient id="sv-bar-off" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#818CF8" stopOpacity="0.5" />
+            <stop offset="100%" stopColor="#6366F1" stopOpacity="0.22" />
           </linearGradient>
         </defs>
 
@@ -369,9 +369,9 @@ function GrowthChart({ range }: { range: string }) {
               x2={W - PR}
               y1={yOf(t)}
               y2={yOf(t)}
-              className="stroke-slate-200/80 dark:stroke-slate-800"
+              className={t === 0 ? "stroke-slate-200 dark:stroke-slate-700" : "stroke-slate-200/80 dark:stroke-slate-800"}
               strokeWidth="1"
-              strokeDasharray="2 6"
+              strokeDasharray={t === 0 ? undefined : "2 6"}
             />
             <text x={PL - 12} y={yOf(t) + 4} textAnchor="end" className="fill-slate-400 dark:fill-slate-500" fontSize="11.5">
               {t}K
@@ -379,70 +379,98 @@ function GrowthChart({ range }: { range: string }) {
           </g>
         ))}
 
+        {/* Hover column highlight */}
+        {labels.map((_, i) => (
+          <rect
+            key={i}
+            x={PL + slot * i + 4}
+            y={PT}
+            width={slot - 8}
+            height={H - PT - PB}
+            rx="12"
+            className="fill-slate-100/80 dark:fill-slate-800/40"
+            style={{ opacity: hover === i ? 1 : 0, transition: "opacity 200ms" }}
+          />
+        ))}
+
+        {/* Bars (re-keyed so they grow again when the range changes) */}
+        <g key={range}>
+          {added.map((v, i) => {
+            const isActive = active === i;
+            return (
+              <rect
+                key={i}
+                x={cx(i) - barW / 2}
+                y={yOf(v)}
+                width={barW}
+                height={H - PB - yOf(v)}
+                rx={Math.min(12, barW / 2)}
+                fill={isActive ? "url(#sv-bar-on)" : "url(#sv-bar-off)"}
+                className="sv-grow"
+                style={{
+                  animationDelay: `${i * 70}ms`,
+                  filter: isActive ? "drop-shadow(0 8px 14px rgba(99,102,241,0.38))" : "none",
+                  transition: "filter 250ms"
+                }}
+              />
+            );
+          })}
+        </g>
+
+        {/* Average reference line */}
+        <g>
+          <line
+            x1={PL}
+            x2={W - PR}
+            y1={yOf(avg)}
+            y2={yOf(avg)}
+            className="stroke-indigo-400/70 dark:stroke-indigo-300/50"
+            strokeWidth="1.25"
+            strokeDasharray="5 5"
+          />
+          <rect
+            x={W - PR - 74}
+            y={yOf(avg) - 11}
+            width="74"
+            height="22"
+            rx="11"
+            className="fill-white stroke-indigo-200 dark:fill-[#0A0F1E] dark:stroke-indigo-400/30"
+          />
+          <text x={W - PR - 37} y={yOf(avg) + 4} textAnchor="middle" className="fill-indigo-600 dark:fill-indigo-300" fontSize="11" fontWeight="500">
+            Avg {avg.toFixed(1)}K
+          </text>
+        </g>
+
         {/* x labels */}
         {labels.map((l, i) => (
           <text
             key={l}
-            x={xs[i]}
+            x={cx(i)}
             y={H - 9}
             textAnchor="middle"
-            className={`transition-colors duration-200 ${hv === i ? "fill-slate-700 dark:fill-slate-200" : "fill-slate-400 dark:fill-slate-500"}`}
+            className={`transition-colors duration-200 ${active === i ? "fill-slate-800 dark:fill-slate-100" : "fill-slate-400 dark:fill-slate-500"}`}
             fontSize="11.5"
+            fontWeight={active === i ? 500 : 400}
           >
             {l}
           </text>
         ))}
-
-        {/* Hover guide */}
-        {hv !== null && (
-          <line x1={xs[hv]} x2={xs[hv]} y1={PT} y2={H - PB} className="stroke-indigo-300/70 dark:stroke-indigo-400/40" strokeWidth="1" />
-        )}
-
-        {/* Series (re-keyed so the draw animation replays when the range changes) */}
-        <g key={range}>
-          <path d={area} fill="url(#sv-area)" className="sv-fade" />
-          <path
-            d={line}
-            fill="none"
-            stroke="url(#sv-line)"
-            strokeWidth="2.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pathLength={1}
-            className="sv-draw"
-            style={{ filter: "drop-shadow(0 6px 10px rgba(99,102,241,0.35))" }}
-          />
-        </g>
-
-        {/* Latest value marker */}
-        <g className="sv-fade" key={`end-${range}`}>
-          <circle cx={xs[last]} cy={ys[last]} r="9" fill="#6366F1" opacity="0.15" />
-          <circle cx={xs[last]} cy={ys[last]} r="4.5" fill="#6366F1" className="stroke-white dark:stroke-[#0A0F1E]" strokeWidth="2" />
-        </g>
-
-        {/* Hover marker */}
-        {hv !== null && hv !== last && (
-          <g>
-            <circle cx={xs[hv]} cy={ys[hv]} r="9" fill="#6366F1" opacity="0.15" />
-            <circle cx={xs[hv]} cy={ys[hv]} r="4.5" fill="#6366F1" className="stroke-white dark:stroke-[#0A0F1E]" strokeWidth="2" />
-          </g>
-        )}
       </svg>
 
-      {hv !== null && (
+      {hover !== null && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[135%] whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-[0_12px_28px_-10px_rgba(15,23,42,0.3)] dark:border-slate-700 dark:bg-[#0D1324]"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+12px)] whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-[0_12px_28px_-10px_rgba(15,23,42,0.3)] dark:border-slate-700 dark:bg-[#0D1324]"
           style={{
-            left: `${Math.min(86, Math.max(14, (xs[hv] / W) * 100))}%`,
-            top: `${(ys[hv] / H) * 100}%`
+            left: `${Math.min(86, Math.max(14, (cx(hover) / W) * 100))}%`,
+            top: `${(yOf(added[hover]) / H) * 100}%`
           }}
         >
-          <p className="text-[11px] text-slate-400 dark:text-slate-500">{labels[hv]}</p>
-          <p className="mt-0.5 flex items-baseline gap-2 text-sm">
-            <span className="font-medium tabular-nums text-slate-900 dark:text-white">{values[hv].toFixed(1)}K</span>
-            {change !== null && (
-              <span className="text-xs tabular-nums text-emerald-600 dark:text-emerald-400">+{change.toFixed(1)}K</span>
-            )}
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">{labels[hover]}</p>
+          <p className="mt-1 text-sm font-medium tabular-nums text-slate-900 dark:text-white">
+            +{added[hover].toFixed(1)}K <span className="font-normal text-slate-500 dark:text-slate-400">net new</span>
+          </p>
+          <p className="mt-0.5 text-xs tabular-nums text-slate-400 dark:text-slate-500">
+            Total {cumulative(hover).toFixed(1)}K
           </p>
         </div>
       )}
@@ -664,9 +692,11 @@ function HealthCell({ h, index }: { h: Health; index: number }) {
 export default function DashboardPage() {
   const [range, setRange] = useState("30");
 
-  const { values } = SERIES[range];
-  const current = values[values.length - 1];
-  const growth = ((current - values[0]) / values[0]) * 100;
+  const series = SERIES[range];
+  const netNew = series.added.reduce((a, b) => a + b, 0);
+  const growth = (netNew / (TOTAL_SUBS - netNew)) * 100;
+  const avgAdded = netNew / series.added.length;
+  const peakIdx = series.added.indexOf(Math.max(...series.added));
   const okCount = HEALTH.filter((h) => h.state === "ok").length;
 
   return (
@@ -675,6 +705,8 @@ export default function DashboardPage() {
         @keyframes sv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes sv-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes sv-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        .sv-grow { transform-box: fill-box; transform-origin: 50% 100%; animation: sv-grow .8s cubic-bezier(.22,1,.36,1) backwards; }
         @keyframes sv-bar { from { transform: scaleY(0.15); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
         .sv-bar { transform-origin: bottom; animation: sv-bar .55s cubic-bezier(.22,1,.36,1) backwards; }
         .sv-rise { opacity: 0; animation: sv-rise .7s cubic-bezier(.22,1,.36,1) forwards; }
@@ -683,7 +715,7 @@ export default function DashboardPage() {
         @media (prefers-reduced-motion: reduce) {
           .sv-rise, .sv-fade { animation: none; opacity: 1; }
           .sv-draw { animation: none; stroke-dashoffset: 0; }
-          .sv-bar { animation: none; }
+          .sv-bar, .sv-grow { animation: none; }
         }
       `}</style>
 
@@ -719,25 +751,40 @@ export default function DashboardPage() {
         {/* Charts */}
         <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
           <div className={`sv-rise ${card} p-6 xl:col-span-8`} style={{ animationDelay: "420ms" }}>
-            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h3 className="text-sm text-slate-500 dark:text-slate-400">Subscriber growth</h3>
+                <h3 className="text-sm text-slate-500 dark:text-slate-400 font-light">Subscriber growth</h3>
                 <div className="mt-2 flex items-center gap-3">
                   <span className="text-[30px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
-                    {current.toFixed(1)}K
+                    {TOTAL_SUBS.toFixed(1)}K
                   </span>
                   <Pill tone="good">
                     <Arrow />
                     {growth.toFixed(1)}%
                   </Pill>
                 </div>
-                <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
-                  Total active subscribers over the selected period
-                </p>
               </div>
               <RangeSwitch value={range} onChange={setRange} />
             </div>
-            <GrowthChart range={range} />
+
+            {/* Period summary */}
+            <div className="mt-6 grid grid-cols-3 divide-x divide-slate-100 rounded-xl border border-slate-100 bg-slate-50/60 dark:divide-slate-800 dark:border-slate-800 dark:bg-white/[0.015]">
+              {[
+                { k: "Net new", v: `+${netNew.toFixed(1)}K`, s: "this period" },
+                { k: "Average", v: `${avgAdded.toFixed(1)}K`, s: series.unit },
+                { k: "Best period", v: `+${series.added[peakIdx].toFixed(1)}K`, s: series.labels[peakIdx] }
+              ].map((m) => (
+                <div key={m.k} className="px-4 py-3">
+                  <p className="text-xs text-slate-400 dark:text-slate-500">{m.k}</p>
+                  <p className="mt-1 text-[17px] font-medium tabular-nums text-slate-900 dark:text-white">{m.v}</p>
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{m.s}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <GrowthChart range={range} />
+            </div>
           </div>
 
           <div className={`sv-rise ${card} p-6 xl:col-span-4`} style={{ animationDelay: "500ms" }}>
