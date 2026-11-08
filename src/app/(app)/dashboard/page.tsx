@@ -1,7 +1,7 @@
 "use client";
 
-import { Icon,IconName } from "@/components/Icon";
-import { useEffect, useState, type PointerEvent } from "react";
+import { Icon, IconName } from "@/components/Icon";
+import { useEffect, useState, type PointerEvent, type ReactNode } from "react";
 
 /* ────────────────────────────── Data ────────────────────────────── */
 
@@ -12,8 +12,11 @@ type Stat = {
   suffix?: string;
   delta: string;
   tone: "good" | "bad" | "muted";
+  trend?: "up" | "down";
   icon: IconName;
-  chip: string;
+  from: string;
+  to: string;
+  spark: number[];
 };
 
 const STATS: Stat[] = [
@@ -23,18 +26,24 @@ const STATS: Stat[] = [
     decimals: 0,
     delta: "+2 this month",
     tone: "good",
+    trend: "up",
     icon: "tenants",
-    chip: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+    from: "#818CF8",
+    to: "#4F46E5",
+    spark: [18, 18, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24]
   },
   {
     label: "Active subscribers",
     value: 842.6,
     decimals: 1,
     suffix: "K",
-    delta: "+12.4%",
+    delta: "12.4%",
     tone: "good",
+    trend: "up",
     icon: "subscribers",
-    chip: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+    from: "#34D399",
+    to: "#059669",
+    spark: [701, 712, 725, 738, 751, 765, 780, 798, 812, 826, 838, 842.6]
   },
   {
     label: "Provisioning success",
@@ -44,24 +53,36 @@ const STATS: Stat[] = [
     delta: "Last 24h",
     tone: "muted",
     icon: "check",
-    chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-300"
+    from: "#2DD4BF",
+    to: "#0D9488",
+    spark: [97.1, 97.8, 97.4, 98.0, 97.6, 98.3, 98.1, 98.5, 98.0, 98.4, 98.1, 98.2]
   },
   {
     label: "Failed transactions",
     value: 142,
     decimals: 0,
-    delta: "+12",
+    delta: "12",
     tone: "bad",
+    trend: "up",
     icon: "alert",
-    chip: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300"
+    from: "#FB7185",
+    to: "#E11D48",
+    spark: [96, 110, 104, 120, 118, 131, 125, 138, 129, 135, 130, 142]
   }
 ];
 
-const TONES = {
-  good: "text-emerald-600 dark:text-emerald-400",
-  bad: "text-rose-600 dark:text-rose-400",
-  muted: "text-slate-400 dark:text-slate-500"
+const PILL = {
+  good: "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20",
+  bad: "bg-rose-50 text-rose-700 ring-rose-600/15 dark:bg-rose-500/10 dark:text-rose-300 dark:ring-rose-400/20",
+  muted:
+    "bg-slate-100 text-slate-600 ring-slate-500/10 dark:bg-slate-800 dark:text-slate-400 dark:ring-slate-600/30"
 };
+
+const RANGES = [
+  { key: "7", label: "7D" },
+  { key: "30", label: "30D" },
+  { key: "90", label: "90D" }
+];
 
 const SERIES: Record<string, { labels: string[]; values: number[] }> = {
   "7": {
@@ -70,7 +91,7 @@ const SERIES: Record<string, { labels: string[]; values: number[] }> = {
   },
   "30": {
     labels: ["Nov 1", "Nov 5", "Nov 10", "Nov 15", "Nov 20", "Nov 23"],
-    values: [780.2, 792.4, 810.1, 826.3, 838.5, 842.6]
+    values: [749.6, 772.8, 797.4, 819.1, 835.0, 842.6]
   },
   "90": {
     labels: ["Aug 25", "Sep 10", "Sep 25", "Oct 10", "Oct 25", "Nov 10", "Nov 23"],
@@ -104,11 +125,35 @@ const HEALTH: Health[] = [
   { group: "Audio generation", name: "SmartVoice AI", detail: "Queue 0", last: "30m ago", state: "ok" }
 ];
 
-const ACTIVITY = [
-  { who: "Tenant Alpha", what: "provisioned 12 new SIP trunks", when: "2m ago" },
-  { who: "Tenant Beta", what: "updated call routing rules", when: "18m ago" },
-  { who: "System", what: "nightly backup completed", when: "1h ago" },
-  { who: "Tenant Gamma", what: "enabled failover gateway", when: "3h ago" }
+const ACTIVITY: { who: string; what: string; when: string; icon: IconName; chip: string }[] = [
+  {
+    who: "Tenant Alpha",
+    what: "provisioned 12 new SIP trunks",
+    when: "2m ago",
+    icon: "connections",
+    chip: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+  },
+  {
+    who: "Tenant Beta",
+    what: "updated call routing rules",
+    when: "18m ago",
+    icon: "settings",
+    chip: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+  },
+  {
+    who: "System",
+    what: "nightly backup completed",
+    when: "1h ago",
+    icon: "check",
+    chip: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+  },
+  {
+    who: "Tenant Gamma",
+    what: "enabled failover gateway",
+    when: "3h ago",
+    icon: "operators",
+    chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-300"
+  }
 ];
 
 /* ────────────────────────────── Helpers ────────────────────────────── */
@@ -135,30 +180,101 @@ function useCountUp(target: number, decimals: number, duration = 1000) {
   return value.toFixed(decimals);
 }
 
+/** Smooth path through points using horizontal-tangent cubic curves */
+function smoothPath(xs: number[], ys: number[]) {
+  let d = `M${xs[0]},${ys[0]}`;
+  for (let i = 1; i < xs.length; i++) {
+    const mx = (xs[i - 1] + xs[i]) / 2;
+    d += ` C${mx},${ys[i - 1]} ${mx},${ys[i]} ${xs[i]},${ys[i]}`;
+  }
+  return d;
+}
+
 const card =
-  "rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none";
+  "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.10)] " +
+  "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
+
+function Arrow({ up = true }: { up?: boolean }) {
+  return (
+    <svg viewBox="0 0 12 12" className={`h-3 w-3 ${up ? "" : "rotate-180"}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 10V2M2.5 5.5 6 2l3.5 3.5" />
+    </svg>
+  );
+}
+
+function Pill({ tone, children }: { tone: keyof typeof PILL; children: ReactNode }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${PILL[tone]}`}>
+      {children}
+    </span>
+  );
+}
 
 /* ────────────────────────────── Stat card ────────────────────────────── */
+
+function Sparkline({ data, id, color }: { data: number[]; id: string; color: string }) {
+  const w = 200;
+  const h = 56;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const xs = data.map((_, i) => (i / (data.length - 1)) * w);
+  const ys = data.map((v) => h - 8 - ((v - min) / (max - min || 1)) * (h - 22));
+  const line = smoothPath(xs, ys);
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="sv-fade h-14 w-full" aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={`${line} L${w},${h} L0,${h} Z`} fill={`url(#${id})`} />
+      <path d={line} fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
 
 function StatCard({ stat, index }: { stat: Stat; index: number }) {
   const shown = useCountUp(stat.value, stat.decimals);
   return (
     <div
-      className={`sv-rise ${card} p-5`}
+      className={`sv-rise group relative overflow-hidden ${card} pt-5`}
       style={{ animationDelay: `${120 + index * 70}ms` }}
     >
-      <div className="flex items-start justify-between">
+      {/* Soft accent glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full opacity-[0.14] blur-2xl transition-opacity duration-500 group-hover:opacity-25 dark:opacity-[0.18]"
+        style={{ background: stat.to }}
+      />
+
+      <div className="relative flex items-start justify-between px-5">
         <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${stat.chip}`}>
-          <Icon name={stat.icon} />
+        <span
+          className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ring-1 ring-black/5"
+          style={{
+            background: `linear-gradient(140deg, ${stat.from}, ${stat.to})`,
+            boxShadow: `0 8px 18px -8px ${stat.to}, inset 0 1px 0 rgba(255,255,255,0.35)`
+          }}
+        >
+          <Icon name={stat.icon} className="h-[18px] w-[18px]" strokeWidth={1.8} />
         </span>
       </div>
-      <div className="mt-5 flex items-baseline gap-2.5">
-        <span className="text-[28px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
+
+      <div className="relative mt-4 flex items-center gap-3 px-5">
+        <span className="text-[32px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
           {shown}
           {stat.suffix}
         </span>
-        <span className={`text-[13px] ${TONES[stat.tone]}`}>{stat.delta}</span>
+        <Pill tone={stat.tone}>
+          {stat.trend && <Arrow up={stat.trend === "up"} />}
+          {stat.delta}
+        </Pill>
+      </div>
+
+      <div className="relative mt-5">
+        <Sparkline data={stat.spark} id={`spark-${index}`} color={stat.to} />
       </div>
     </div>
   );
@@ -166,12 +282,12 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
 
 /* ────────────────────────────── Growth chart ────────────────────────────── */
 
-const W = 640;
-const H = 300;
-const PL = 48;
-const PR = 16;
-const PT = 16;
-const PB = 32;
+const W = 720;
+const H = 320;
+const PL = 52;
+const PR = 20;
+const PT = 20;
+const PB = 34;
 
 function GrowthChart({ range }: { range: string }) {
   const { labels, values } = SERIES[range];
@@ -186,16 +302,13 @@ function GrowthChart({ range }: { range: string }) {
   const ticks: number[] = [];
   for (let t = lo; t <= hi; t += step) ticks.push(t);
 
-  const xs = values.map((_, i) => PL + (i / (values.length - 1)) * (W - PL - PR));
-  const ys = values.map((v) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB));
   const yOf = (v: number) => PT + (1 - (v - lo) / (hi - lo)) * (H - PT - PB);
+  const xs = values.map((_, i) => PL + (i / (values.length - 1)) * (W - PL - PR));
+  const ys = values.map(yOf);
 
-  let line = `M${xs[0]},${ys[0]}`;
-  for (let i = 1; i < xs.length; i++) {
-    const mx = (xs[i - 1] + xs[i]) / 2;
-    line += ` C${mx},${ys[i - 1]} ${mx},${ys[i]} ${xs[i]},${ys[i]}`;
-  }
+  const line = smoothPath(xs, ys);
   const area = `${line} L${xs[xs.length - 1]},${H - PB} L${xs[0]},${H - PB} Z`;
+  const last = values.length - 1;
 
   const onMove = (e: PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -207,6 +320,9 @@ function GrowthChart({ range }: { range: string }) {
     setHover(best);
   };
 
+  const hv = hover !== null ? hover : null;
+  const change = hv !== null && hv > 0 ? values[hv] - values[hv - 1] : null;
+
   return (
     <div
       className="relative w-full touch-pan-y"
@@ -217,8 +333,13 @@ function GrowthChart({ range }: { range: string }) {
       <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" role="img" aria-label="Subscriber growth over time">
         <defs>
           <linearGradient id="sv-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.18" />
+            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.30" />
+            <stop offset="60%" stopColor="#6366F1" stopOpacity="0.06" />
             <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id="sv-line" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#818CF8" />
+            <stop offset="100%" stopColor="#6366F1" />
           </linearGradient>
         </defs>
 
@@ -230,16 +351,11 @@ function GrowthChart({ range }: { range: string }) {
               x2={W - PR}
               y1={yOf(t)}
               y2={yOf(t)}
-              className="stroke-slate-100 dark:stroke-slate-800/70"
+              className="stroke-slate-200/80 dark:stroke-slate-800"
               strokeWidth="1"
+              strokeDasharray="2 6"
             />
-            <text
-              x={PL - 10}
-              y={yOf(t) + 4}
-              textAnchor="end"
-              className="fill-slate-400 dark:fill-slate-500"
-              fontSize="11"
-            >
+            <text x={PL - 12} y={yOf(t) + 4} textAnchor="end" className="fill-slate-400 dark:fill-slate-500" fontSize="11.5">
               {t}K
             </text>
           </g>
@@ -250,25 +366,18 @@ function GrowthChart({ range }: { range: string }) {
           <text
             key={l}
             x={xs[i]}
-            y={H - 8}
+            y={H - 9}
             textAnchor="middle"
-            className="fill-slate-400 dark:fill-slate-500"
-            fontSize="11"
+            className={`transition-colors duration-200 ${hv === i ? "fill-slate-700 dark:fill-slate-200" : "fill-slate-400 dark:fill-slate-500"}`}
+            fontSize="11.5"
           >
             {l}
           </text>
         ))}
 
         {/* Hover guide */}
-        {hover !== null && (
-          <line
-            x1={xs[hover]}
-            x2={xs[hover]}
-            y1={PT}
-            y2={H - PB}
-            className="stroke-slate-200 dark:stroke-slate-700"
-            strokeDasharray="3 4"
-          />
+        {hv !== null && (
+          <line x1={xs[hv]} x2={xs[hv]} y1={PT} y2={H - PB} className="stroke-indigo-300/70 dark:stroke-indigo-400/40" strokeWidth="1" />
         )}
 
         {/* Series (re-keyed so the draw animation replays when the range changes) */}
@@ -277,42 +386,82 @@ function GrowthChart({ range }: { range: string }) {
           <path
             d={line}
             fill="none"
-            stroke="#6366F1"
-            strokeWidth="2"
+            stroke="url(#sv-line)"
+            strokeWidth="2.75"
             strokeLinecap="round"
             strokeLinejoin="round"
             pathLength={1}
             className="sv-draw"
+            style={{ filter: "drop-shadow(0 6px 10px rgba(99,102,241,0.35))" }}
           />
         </g>
 
-        {xs.map((x, i) => (
-          <circle
-            key={i}
-            cx={x}
-            cy={ys[i]}
-            r={hover === i ? 5 : 3}
-            strokeWidth="2"
-            stroke="#6366F1"
-            className="fill-white transition-all duration-200 dark:fill-[#0A0F1E]"
-          />
-        ))}
+        {/* Latest value marker */}
+        <g className="sv-fade" key={`end-${range}`}>
+          <circle cx={xs[last]} cy={ys[last]} r="9" fill="#6366F1" opacity="0.15" />
+          <circle cx={xs[last]} cy={ys[last]} r="4.5" fill="#6366F1" className="stroke-white dark:stroke-[#0A0F1E]" strokeWidth="2" />
+        </g>
+
+        {/* Hover marker */}
+        {hv !== null && hv !== last && (
+          <g>
+            <circle cx={xs[hv]} cy={ys[hv]} r="9" fill="#6366F1" opacity="0.15" />
+            <circle cx={xs[hv]} cy={ys[hv]} r="4.5" fill="#6366F1" className="stroke-white dark:stroke-[#0A0F1E]" strokeWidth="2" />
+          </g>
+        )}
       </svg>
 
-      {hover !== null && (
+      {hv !== null && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] whitespace-nowrap rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs shadow-lg dark:border-slate-700 dark:bg-[#0D1324]"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[135%] whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-[0_12px_28px_-10px_rgba(15,23,42,0.3)] dark:border-slate-700 dark:bg-[#0D1324]"
           style={{
-            left: `${Math.min(88, Math.max(12, (xs[hover] / W) * 100))}%`,
-            top: `${(ys[hover] / H) * 100}%`
+            left: `${Math.min(86, Math.max(14, (xs[hv] / W) * 100))}%`,
+            top: `${(ys[hv] / H) * 100}%`
           }}
         >
-          <span className="text-slate-500 dark:text-slate-400">{labels[hover]}</span>
-          <span className="ml-2 font-medium text-slate-900 dark:text-white">
-            {values[hover].toFixed(1)}K
-          </span>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">{labels[hv]}</p>
+          <p className="mt-0.5 flex items-baseline gap-2 text-sm">
+            <span className="font-medium tabular-nums text-slate-900 dark:text-white">{values[hv].toFixed(1)}K</span>
+            {change !== null && (
+              <span className="text-xs tabular-nums text-emerald-600 dark:text-emerald-400">+{change.toFixed(1)}K</span>
+            )}
+          </p>
         </div>
       )}
+    </div>
+  );
+}
+
+function RangeSwitch({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const idx = Math.max(0, RANGES.findIndex((r) => r.key === value));
+  return (
+    <div
+      role="tablist"
+      aria-label="Time range"
+      className="relative grid grid-cols-3 rounded-xl bg-slate-100 p-1 dark:bg-slate-800/70"
+    >
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-1 left-1 w-[calc((100%-8px)/3)] rounded-lg bg-white shadow-sm transition-transform duration-300 ease-out dark:bg-slate-700"
+        style={{ transform: `translateX(${idx * 100}%)` }}
+      />
+      {RANGES.map((r) => (
+        <button
+          key={r.key}
+          role="tab"
+          type="button"
+          aria-selected={value === r.key}
+          onClick={() => onChange(r.key)}
+          className={
+            "relative z-10 h-8 w-14 rounded-lg text-xs font-medium outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-indigo-500/40 " +
+            (value === r.key
+              ? "text-slate-900 dark:text-white"
+              : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200")
+          }
+        >
+          {r.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -328,7 +477,7 @@ function StatusDonut() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const R = 76;
+  const R = 78;
   const C = 2 * Math.PI * R;
   const GAP = 3;
   let cum = 0;
@@ -336,10 +485,10 @@ function StatusDonut() {
   const focus = active !== null ? STATUS[active] : null;
 
   return (
-    <div className="flex flex-col items-center gap-8">
-      <div className="relative h-[200px] w-[200px]">
+    <div className="flex flex-col items-center">
+      <div className="relative h-[210px] w-[210px]">
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" role="img" aria-label="Subscription status distribution">
-          <circle cx="100" cy="100" r={R} fill="none" strokeWidth="20" className="stroke-slate-100 dark:stroke-slate-800/70" />
+          <circle cx="100" cy="100" r={R} fill="none" strokeWidth="22" className="stroke-slate-100 dark:stroke-slate-800/70" />
           {STATUS.map((s, i) => {
             const len = (s.pct / 100) * C - GAP;
             const offset = (cum / 100) * C;
@@ -352,10 +501,10 @@ function StatusDonut() {
                 r={R}
                 fill="none"
                 stroke={s.color}
-                strokeWidth={active === i ? 23 : 20}
+                strokeWidth={active === i ? 25 : 22}
                 strokeDasharray={`${mounted ? len : 0} ${C}`}
                 strokeDashoffset={-offset}
-                opacity={active === null || active === i ? 1 : 0.3}
+                opacity={active === null || active === i ? 1 : 0.28}
                 style={{
                   transition: `stroke-dasharray 900ms cubic-bezier(.22,1,.36,1) ${i * 120}ms, stroke-width 200ms, opacity 200ms`
                 }}
@@ -366,33 +515,46 @@ function StatusDonut() {
           })}
         </svg>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-          <span className="text-[26px] font-medium leading-none tabular-nums text-slate-900 dark:text-white">
+          <span className="text-[28px] font-medium leading-none tabular-nums text-slate-900 dark:text-white">
             {focus ? `${focus.pct}%` : `${TOTAL_SUBS}K`}
           </span>
-          <span className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <span className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             {focus ? focus.label : "Total subscribers"}
           </span>
         </div>
       </div>
 
-      <ul className="grid w-full max-w-sm grid-cols-2 gap-x-6 gap-y-2.5">
+      <ul className="mt-8 w-full space-y-1">
         {STATUS.map((s, i) => (
           <li
             key={s.label}
             onPointerEnter={() => setActive(i)}
             onPointerLeave={() => setActive(null)}
             className={
-              "flex items-center justify-between rounded-lg px-2 py-1 text-sm transition-colors duration-200 " +
-              (active === i ? "bg-slate-50 dark:bg-slate-800/50" : "")
+              "rounded-xl px-3 py-2.5 transition-colors duration-200 " +
+              (active === i ? "bg-slate-50 dark:bg-slate-800/40" : "")
             }
           >
-            <span className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-              {s.label}
-            </span>
-            <span className="tabular-nums text-slate-400 dark:text-slate-500">
-              {((TOTAL_SUBS * s.pct) / 100).toFixed(1)}K
-            </span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="flex items-center gap-2.5 text-slate-600 dark:text-slate-300">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: s.color }} />
+                {s.label}
+              </span>
+              <span className="flex items-baseline gap-3 tabular-nums">
+                <span className="text-slate-900 dark:text-white">{((TOTAL_SUBS * s.pct) / 100).toFixed(1)}K</span>
+                <span className="w-9 text-right text-xs text-slate-400 dark:text-slate-500">{s.pct}%</span>
+              </span>
+            </div>
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: mounted ? `${s.pct}%` : "0%",
+                  backgroundColor: s.color,
+                  transition: `width 1000ms cubic-bezier(.22,1,.36,1) ${300 + i * 120}ms`
+                }}
+              />
+            </div>
           </li>
         ))}
       </ul>
@@ -406,30 +568,42 @@ function HealthCard({ h, index }: { h: Health; index: number }) {
   const ok = h.state === "ok";
   return (
     <div
-      className={`sv-rise ${card} p-4 transition-colors duration-300 hover:border-slate-300 dark:hover:border-slate-700`}
+      className={
+        `sv-rise ${card} overflow-hidden transition-colors duration-300 ` +
+        (ok
+          ? "hover:border-slate-300 dark:hover:border-slate-700"
+          : "!border-amber-200 !bg-amber-50/40 dark:!border-amber-500/25 dark:!bg-amber-500/[0.04]")
+      }
       style={{ animationDelay: `${620 + index * 60}ms` }}
     >
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-400 dark:text-slate-500">{h.group}</p>
-        <span className="relative flex h-2 w-2" role="img" aria-label={ok ? "Operational" : "Degraded"}>
+      <div className="p-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="truncate text-xs text-slate-400 dark:text-slate-500">{h.group}</p>
           <span
-            className={`sv-ping absolute inset-0 rounded-full ${ok ? "bg-emerald-400" : "bg-amber-400"}`}
-          />
-          <span
-            className={`relative h-2 w-2 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`}
-          />
-        </span>
+            className={
+              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset " +
+              (ok
+                ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+                : "bg-amber-100/70 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20")
+            }
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />
+            {ok ? "Operational" : "Degraded"}
+          </span>
+        </div>
+        <p className="mt-3.5 text-[15px] font-medium text-slate-900 dark:text-white">{h.name}</p>
+        <p
+          className={
+            "mt-1 text-[13px] " +
+            (ok ? "text-slate-500 dark:text-slate-400" : "text-amber-700 dark:text-amber-300")
+          }
+        >
+          {h.detail}
+        </p>
       </div>
-      <p className="mt-3 text-[15px] font-medium text-slate-900 dark:text-white">{h.name}</p>
-      <p
-        className={
-          "mt-1.5 text-[13px] " +
-          (ok ? "text-slate-500 dark:text-slate-400" : "text-amber-600 dark:text-amber-400")
-        }
-      >
-        {h.detail}
-      </p>
-      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-600">Last check {h.last}</p>
+      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-400 dark:border-slate-800 dark:bg-white/[0.015] dark:text-slate-500">
+        Last check {h.last}
+      </div>
     </div>
   );
 }
@@ -439,129 +613,138 @@ function HealthCard({ h, index }: { h: Health; index: number }) {
 export default function DashboardPage() {
   const [range, setRange] = useState("30");
 
+  const { values } = SERIES[range];
+  const current = values[values.length - 1];
+  const growth = ((current - values[0]) / values[0]) * 100;
+  const okCount = HEALTH.filter((h) => h.state === "ok").length;
+
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-8 p-5 sm:p-6 lg:p-8">
+    <div className="relative">
       <style>{`
         @keyframes sv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes sv-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-        @keyframes sv-ping { 0% { transform: scale(1); opacity: .5; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
         .sv-rise { opacity: 0; animation: sv-rise .7s cubic-bezier(.22,1,.36,1) forwards; }
-        .sv-fade { opacity: 0; animation: sv-fade 1.2s ease-out .5s forwards; }
+        .sv-fade { opacity: 0; animation: sv-fade 1.1s ease-out .45s forwards; }
         .sv-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: sv-draw 1.3s cubic-bezier(.22,1,.36,1) forwards; }
-        .sv-ping { animation: sv-ping 3s ease-out infinite; }
         @media (prefers-reduced-motion: reduce) {
           .sv-rise, .sv-fade { animation: none; opacity: 1; }
           .sv-draw { animation: none; stroke-dashoffset: 0; }
-          .sv-ping { animation: none; opacity: 0; }
         }
       `}</style>
 
-      {/* Header */}
-      <header className="sv-rise">
-        <h2 className="text-2xl font-medium tracking-tight text-slate-900 dark:text-white">
-          Platform Overview
-        </h2>
-        <p className="mt-1 text-[15px] font-light text-slate-500 dark:text-slate-400">
-          Real-time health and business activity across the platform.
-        </p>
-      </header>
+      {/* Ambient backdrop */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-80 bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.09),transparent_70%)] dark:bg-[radial-gradient(55%_100%_at_30%_0%,rgba(99,102,241,0.14),transparent_70%)]"
+      />
 
-      {/* Stats */}
-      <section aria-label="Key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {STATS.map((s, i) => (
-          <StatCard key={s.label} stat={s} index={i} />
-        ))}
-      </section>
-
-      {/* Charts */}
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <div className={`sv-rise ${card} p-6 xl:col-span-3`} style={{ animationDelay: "420ms" }}>
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <h3 className="text-base font-medium text-slate-900 dark:text-white">
-                Subscriber growth
-              </h3>
-              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                Total active subscribers over time
-              </p>
-            </div>
-
-            <div className="relative">
-              <select
-                value={range}
-                onChange={(e) => setRange(e.target.value)}
-                aria-label="Time range"
-                className="h-9 cursor-pointer appearance-none rounded-lg border border-slate-200 bg-white pl-3 pr-9 text-sm text-slate-700 outline-none transition-all duration-200 hover:border-slate-300 focus:border-indigo-400 focus:shadow-[0_0_0_4px_rgba(99,102,241,0.10)] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600"
-              >
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-              </select>
-              <Icon
-                name="chevron"
-                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-              />
-            </div>
-          </div>
-          <GrowthChart range={range} />
-        </div>
-
-        <div className={`sv-rise ${card} p-6 xl:col-span-2`} style={{ animationDelay: "500ms" }}>
-          <div className="mb-6">
-            <h3 className="text-base font-medium text-slate-900 dark:text-white">
-              Subscription status
-            </h3>
-            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-              Share of subscribers by state
+      <div className="relative mx-auto flex max-w-[1400px] flex-col gap-8 p-5 sm:p-6 lg:p-8">
+        {/* Header */}
+        <header className="sv-rise flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-medium tracking-tight text-slate-900 dark:text-white">
+              Platform Overview
+            </h2>
+            <p className="mt-1 text-[15px] font-light text-slate-500 dark:text-slate-400">
+              Real-time health and business activity across the platform.
             </p>
           </div>
-          <StatusDonut />
-        </div>
-      </section>
+          <p className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs text-slate-500 backdrop-blur dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
+            Updated just now
+          </p>
+        </header>
 
-      {/* Operational health */}
-      <section aria-label="Operational health">
-        <h3 className="sv-rise mb-4 text-base font-medium text-slate-900 dark:text-white" style={{ animationDelay: "580ms" }}>
-          Operational health
-        </h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-          {HEALTH.map((h, i) => (
-            <HealthCard key={h.name} h={h} index={i} />
+        {/* Stats */}
+        <section aria-label="Key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {STATS.map((s, i) => (
+            <StatCard key={s.label} stat={s} index={i} />
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* Recent activity */}
-      <section className={`sv-rise ${card}`} style={{ animationDelay: "1000ms" }}>
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
-          <h3 className="text-base font-medium text-slate-900 dark:text-white">Recent activity</h3>
-          <span className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="sv-ping absolute inset-0 rounded-full bg-teal-400" />
-              <span className="relative h-1.5 w-1.5 rounded-full bg-teal-500" />
-            </span>
-            Live
-          </span>
-        </div>
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800/60">
-          {ACTIVITY.map((a) => (
-            <li
-              key={a.what}
-              className="flex items-center gap-4 px-6 py-3.5 transition-colors duration-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/20"
-            >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                {a.who === "System" ? "S" : a.who.split(" ")[1]?.[0] ?? a.who[0]}
-              </span>
-              <p className="min-w-0 flex-1 truncate text-sm text-slate-600 dark:text-slate-300">
-                <span className="font-medium text-slate-900 dark:text-white">{a.who}</span>{" "}
-                {a.what}
+        {/* Charts */}
+        <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+          <div className={`sv-rise ${card} p-6 xl:col-span-8`} style={{ animationDelay: "420ms" }}>
+            <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm text-slate-500 dark:text-slate-400">Subscriber growth</h3>
+                <div className="mt-2 flex items-center gap-3">
+                  <span className="text-[30px] font-medium leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
+                    {current.toFixed(1)}K
+                  </span>
+                  <Pill tone="good">
+                    <Arrow />
+                    {growth.toFixed(1)}%
+                  </Pill>
+                </div>
+                <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+                  Total active subscribers over the selected period
+                </p>
+              </div>
+              <RangeSwitch value={range} onChange={setRange} />
+            </div>
+            <GrowthChart range={range} />
+          </div>
+
+          <div className={`sv-rise ${card} p-6 xl:col-span-4`} style={{ animationDelay: "500ms" }}>
+            <div className="mb-6">
+              <h3 className="text-sm text-slate-500 dark:text-slate-400">Subscription status</h3>
+              <p className="mt-2 text-[17px] font-medium text-slate-900 dark:text-white">
+                Share of subscribers by state
               </p>
-              <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">{a.when}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+            </div>
+            <StatusDonut />
+          </div>
+        </section>
+
+        {/* Operational health */}
+        <section aria-label="Operational health">
+          <div className="sv-rise mb-4 flex items-center justify-between gap-3" style={{ animationDelay: "580ms" }}>
+            <div>
+              <h3 className="text-base font-medium text-slate-900 dark:text-white">Operational health</h3>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                Live status of connected services and gateways
+              </p>
+            </div>
+            <Pill tone={okCount === HEALTH.length ? "good" : "muted"}>
+              {okCount} of {HEALTH.length} operational
+            </Pill>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+            {HEALTH.map((h, i) => (
+              <HealthCard key={h.name} h={h} index={i} />
+            ))}
+          </div>
+        </section>
+
+        {/* Recent activity */}
+        <section className={`sv-rise ${card}`} style={{ animationDelay: "1000ms" }}>
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+            <div>
+              <h3 className="text-base font-medium text-slate-900 dark:text-white">Recent activity</h3>
+              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                Latest changes across tenants and the system
+              </p>
+            </div>
+          </div>
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800/60">
+            {ACTIVITY.map((a) => (
+              <li
+                key={a.what}
+                className="flex items-center gap-4 px-6 py-4 transition-colors duration-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/20"
+              >
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${a.chip}`}>
+                  <Icon name={a.icon} className="h-[17px] w-[17px]" />
+                </span>
+                <p className="min-w-0 flex-1 truncate text-sm text-slate-600 dark:text-slate-300">
+                  <span className="font-medium text-slate-900 dark:text-white">{a.who}</span> {a.what}
+                </p>
+                <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">{a.when}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </div>
   );
 }
