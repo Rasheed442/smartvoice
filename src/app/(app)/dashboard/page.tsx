@@ -21,7 +21,7 @@ type Stat = {
 
 const STATS: Stat[] = [
   {
-    label: "Total tenants",
+    label: "Total Tenants",
     value: 24,
     decimals: 0,
     delta: "+2 this month",
@@ -33,7 +33,7 @@ const STATS: Stat[] = [
     spark: [18, 18, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24]
   },
   {
-    label: "Active subscribers",
+    label: "Active Subscribers",
     value: 842.6,
     decimals: 1,
     suffix: "K",
@@ -46,7 +46,7 @@ const STATS: Stat[] = [
     spark: [701, 712, 725, 738, 751, 765, 780, 798, 812, 826, 838, 842.6]
   },
   {
-    label: "Provisioning success",
+    label: "Provisioning Success",
     value: 98.2,
     decimals: 1,
     suffix: "%",
@@ -58,7 +58,7 @@ const STATS: Stat[] = [
     spark: [97.1, 97.8, 97.4, 98.0, 97.6, 98.3, 98.1, 98.5, 98.0, 98.4, 98.1, 98.2]
   },
   {
-    label: "Failed transactions",
+    label: "Failed Transactions",
     value: 142,
     decimals: 0,
     delta: "12",
@@ -213,7 +213,7 @@ function smoothPath(xs: number[], ys: number[]) {
 }
 
 const card =
-  "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.10)] " +
+  "rounded-md border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-16px_rgba(15,23,42,0.10)] " +
   "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
 
 function Arrow({ up = true }: { up?: boolean }) {
@@ -272,7 +272,7 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       />
 
       <div className="relative flex items-start justify-between px-5">
-        <p className="text-sm text-slate-500 dark:text-slate-400">{stat.label}</p>
+        <p className="text-[16px] text-slate-500 font-light dark:text-slate-400">{stat.label}</p>
         <span
           className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] ring-1 ring-black/5"
           style={{
