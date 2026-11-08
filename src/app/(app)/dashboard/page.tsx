@@ -111,48 +111,66 @@ const STATUS = [
 type Health = {
   group: string;
   name: string;
-  detail: string;
+  icon: IconName;
+  metric: string;
+  metricLabel: string;
   last: string;
   state: "ok" | "warn";
+  /** One character per recent check: o = healthy, w = degraded */
+  history: string;
 };
 
+const hist = (warn: number[] = []) =>
+  Array.from({ length: 30 }, (_, i) => (warn.includes(i) ? "w" : "o")).join("");
+
 const HEALTH: Health[] = [
-  { group: "Charging", name: "MTN-NG Direct", detail: "Latency 124 ms", last: "2m ago", state: "ok" },
-  { group: "CRBT / CMS", name: "Huawei CRBT v3", detail: "Uptime 99.98%", last: "15s ago", state: "ok" },
-  { group: "DS-SDP", name: "Ericsson SDP", detail: "Success 100%", last: "5m ago", state: "ok" },
-  { group: "SMS gateway", name: "SMPP Node 1", detail: "Slow response", last: "10s ago", state: "warn" },
-  { group: "WhatsApp", name: "Meta Cloud API", detail: "Active sessions 42", last: "1m ago", state: "ok" },
-  { group: "Audio generation", name: "SmartVoice AI", detail: "Queue 0", last: "30m ago", state: "ok" }
+  { group: "Charging", name: "MTN-NG Direct", icon: "subscriptions", metric: "124 ms", metricLabel: "Latency", last: "2m ago", state: "ok", history: hist([9]) },
+  { group: "CRBT / CMS", name: "Huawei CRBT v3", icon: "catalogue", metric: "99.98%", metricLabel: "Uptime", last: "15s ago", state: "ok", history: hist() },
+  { group: "DS-SDP", name: "Ericsson SDP", icon: "operators", metric: "100%", metricLabel: "Success rate", last: "5m ago", state: "ok", history: hist([21]) },
+  { group: "SMS gateway", name: "SMPP Node 1", icon: "connections", metric: "Slow", metricLabel: "Response time", last: "10s ago", state: "warn", history: hist([14, 22, 25, 26, 27, 28, 29]) },
+  { group: "WhatsApp", name: "Meta Cloud API", icon: "subscribers", metric: "42", metricLabel: "Active sessions", last: "1m ago", state: "ok", history: hist() },
+  { group: "Audio generation", name: "SmartVoice AI", icon: "wave", metric: "0", metricLabel: "In queue", last: "30m ago", state: "ok", history: hist([4]) }
 ];
 
-const ACTIVITY: { who: string; what: string; when: string; icon: IconName; chip: string }[] = [
+const ACTIVITY: {
+  who: string;
+  what: string;
+  when: string;
+  category: string;
+  icon: IconName;
+  chip: string;
+}[] = [
   {
     who: "Tenant Alpha",
-    what: "provisioned 12 new SIP trunks",
+    what: "Provisioned 12 new SIP trunks",
     when: "2m ago",
+    category: "Provisioning",
     icon: "connections",
-    chip: "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
+    chip: "bg-indigo-50 text-indigo-600 ring-indigo-600/10 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/20"
   },
   {
     who: "Tenant Beta",
-    what: "updated call routing rules",
+    what: "Updated call routing rules",
     when: "18m ago",
+    category: "Routing",
     icon: "settings",
-    chip: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+    chip: "bg-violet-50 text-violet-600 ring-violet-600/10 dark:bg-violet-500/10 dark:text-violet-300 dark:ring-violet-400/20"
   },
   {
     who: "System",
-    what: "nightly backup completed",
+    what: "Nightly backup completed",
     when: "1h ago",
+    category: "System",
     icon: "check",
-    chip: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300"
+    chip: "bg-emerald-50 text-emerald-600 ring-emerald-600/10 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20"
   },
   {
     who: "Tenant Gamma",
-    what: "enabled failover gateway",
+    what: "Enabled failover gateway",
     when: "3h ago",
+    category: "Failover",
     icon: "operators",
-    chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-300"
+    chip: "bg-teal-50 text-teal-600 ring-teal-600/10 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/20"
   }
 ];
 
@@ -562,47 +580,80 @@ function StatusDonut() {
   );
 }
 
-/* ────────────────────────────── Health card ────────────────────────────── */
+/* ────────────────────────────── Health cell ────────────────────────────── */
 
-function HealthCard({ h, index }: { h: Health; index: number }) {
+function HealthCell({ h, index }: { h: Health; index: number }) {
   const ok = h.state === "ok";
   return (
     <div
       className={
-        `sv-rise ${card} overflow-hidden transition-colors duration-300 ` +
-        (ok
-          ? "hover:border-slate-300 dark:hover:border-slate-700"
-          : "!border-amber-200 !bg-amber-50/40 dark:!border-amber-500/25 dark:!bg-amber-500/[0.04]")
+        "sv-rise p-5 " +
+        (ok ? "bg-white dark:bg-[#0A0F1E]" : "bg-amber-50/60 dark:bg-[#14110A]")
       }
-      style={{ animationDelay: `${620 + index * 60}ms` }}
+      style={{ animationDelay: `${660 + index * 60}ms` }}
     >
-      <div className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate text-xs text-slate-400 dark:text-slate-500">{h.group}</p>
+      {/* Identity + status */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           <span
             className={
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset " +
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset " +
               (ok
-                ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20"
-                : "bg-amber-100/70 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20")
+                ? "bg-slate-50 text-slate-500 ring-slate-200/80 dark:bg-slate-800/60 dark:text-slate-300 dark:ring-slate-700/60"
+                : "bg-amber-100/70 text-amber-600 ring-amber-300/50 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20")
             }
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />
-            {ok ? "Operational" : "Degraded"}
+            <Icon name={h.icon} className="h-[18px] w-[18px]" />
           </span>
+          <div className="min-w-0 leading-tight">
+            <p className="truncate text-[15px] font-medium text-slate-900 dark:text-white">{h.name}</p>
+            <p className="mt-1 truncate text-xs text-slate-400 dark:text-slate-500">{h.group}</p>
+          </div>
         </div>
-        <p className="mt-3.5 text-[15px] font-medium text-slate-900 dark:text-white">{h.name}</p>
-        <p
+
+        <span
           className={
-            "mt-1 text-[13px] " +
-            (ok ? "text-slate-500 dark:text-slate-400" : "text-amber-700 dark:text-amber-300")
+            "inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset " +
+            (ok
+              ? "bg-emerald-50 text-emerald-700 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20"
+              : "bg-amber-100/80 text-amber-700 ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20")
           }
         >
-          {h.detail}
-        </p>
+          <span className={`h-1.5 w-1.5 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />
+          {ok ? "Operational" : "Degraded"}
+        </span>
       </div>
-      <div className="border-t border-slate-100 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-400 dark:border-slate-800 dark:bg-white/[0.015] dark:text-slate-500">
-        Last check {h.last}
+
+      {/* Key metric */}
+      <div className="mt-5 flex items-baseline gap-2">
+        <span
+          className={
+            "text-[22px] font-medium leading-none tabular-nums " +
+            (ok ? "text-slate-900 dark:text-white" : "text-amber-700 dark:text-amber-300")
+          }
+        >
+          {h.metric}
+        </span>
+        <span className="text-[13px] text-slate-500 dark:text-slate-400">{h.metricLabel}</span>
+      </div>
+
+      {/* Recent check history */}
+      <div className="mt-4 flex h-7 items-stretch gap-[3px]" role="img" aria-label={`Last 30 checks for ${h.name}`}>
+        {h.history.split("").map((c, i) => (
+          <span
+            key={i}
+            title={c === "o" ? "Healthy" : "Degraded"}
+            className={
+              "sv-bar flex-1 rounded-[3px] " +
+              (c === "o" ? "bg-emerald-400/80 dark:bg-emerald-400/60" : "bg-amber-400")
+            }
+            style={{ animationDelay: `${700 + index * 60 + i * 14}ms` }}
+          />
+        ))}
+      </div>
+      <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+        <span>Last 30 checks</span>
+        <span>Checked {h.last}</span>
       </div>
     </div>
   );
@@ -624,12 +675,15 @@ export default function DashboardPage() {
         @keyframes sv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes sv-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+        @keyframes sv-bar { from { transform: scaleY(0.15); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }
+        .sv-bar { transform-origin: bottom; animation: sv-bar .55s cubic-bezier(.22,1,.36,1) backwards; }
         .sv-rise { opacity: 0; animation: sv-rise .7s cubic-bezier(.22,1,.36,1) forwards; }
         .sv-fade { opacity: 0; animation: sv-fade 1.1s ease-out .45s forwards; }
         .sv-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: sv-draw 1.3s cubic-bezier(.22,1,.36,1) forwards; }
         @media (prefers-reduced-motion: reduce) {
           .sv-rise, .sv-fade { animation: none; opacity: 1; }
           .sv-draw { animation: none; stroke-dashoffset: 0; }
+          .sv-bar { animation: none; }
         }
       `}</style>
 
@@ -698,48 +752,86 @@ export default function DashboardPage() {
         </section>
 
         {/* Operational health */}
-        <section aria-label="Operational health">
-          <div className="sv-rise mb-4 flex items-center justify-between gap-3" style={{ animationDelay: "580ms" }}>
+        <section
+          aria-label="Operational health"
+          className={`sv-rise ${card} overflow-hidden`}
+          style={{ animationDelay: "580ms" }}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-base font-medium text-slate-900 dark:text-white">Operational health</h3>
               <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                Live status of connected services and gateways
+                Status of connected services and gateways
               </p>
             </div>
-            <Pill tone={okCount === HEALTH.length ? "good" : "muted"}>
-              {okCount} of {HEALTH.length} operational
-            </Pill>
+            <div className="flex items-center gap-4">
+              <span className="hidden items-center gap-3 text-xs text-slate-400 sm:flex dark:text-slate-500">
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-1 rounded-sm bg-emerald-400/80" />
+                  Healthy
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2.5 w-1 rounded-sm bg-amber-400" />
+                  Degraded
+                </span>
+              </span>
+              <Pill tone={okCount === HEALTH.length ? "good" : "muted"}>
+                {okCount} of {HEALTH.length} operational
+              </Pill>
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+
+          <div className="grid grid-cols-1 gap-px bg-slate-100 sm:grid-cols-2 lg:grid-cols-3 dark:bg-slate-800/80">
             {HEALTH.map((h, i) => (
-              <HealthCard key={h.name} h={h} index={i} />
+              <HealthCell key={h.name} h={h} index={i} />
             ))}
           </div>
         </section>
 
         {/* Recent activity */}
-        <section className={`sv-rise ${card}`} style={{ animationDelay: "1000ms" }}>
-          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 dark:border-slate-800">
+        <section className={`sv-rise ${card} overflow-hidden`} style={{ animationDelay: "1000ms" }}>
+          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-base font-medium text-slate-900 dark:text-white">Recent activity</h3>
               <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
                 Latest changes across tenants and the system
               </p>
             </div>
+            <button
+              type="button"
+              className="hidden items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors duration-200 hover:border-slate-300 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40 sm:inline-flex dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-white"
+            >
+              View all
+              <Icon name="chevron" className="h-3.5 w-3.5 -rotate-90" />
+            </button>
           </div>
+
+          {/* Column labels */}
+          <div className="hidden grid-cols-[minmax(0,1fr)_140px_96px] gap-4 border-b border-slate-100 bg-slate-50/70 px-6 py-2.5 text-xs text-slate-400 md:grid dark:border-slate-800 dark:bg-white/[0.015] dark:text-slate-500">
+            <span>Event</span>
+            <span>Category</span>
+            <span className="text-right">Time</span>
+          </div>
+
           <ul className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {ACTIVITY.map((a) => (
               <li
                 key={a.what}
-                className="flex items-center gap-4 px-6 py-4 transition-colors duration-200 hover:bg-slate-50/70 dark:hover:bg-slate-800/20"
+                className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-3.5 transition-colors duration-200 hover:bg-slate-50/70 md:grid-cols-[minmax(0,1fr)_140px_96px] dark:hover:bg-slate-800/20"
               >
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${a.chip}`}>
-                  <Icon name={a.icon} className="h-[17px] w-[17px]" />
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ${a.chip}`}>
+                    <Icon name={a.icon} className="h-[17px] w-[17px]" />
+                  </span>
+                  <div className="min-w-0 leading-tight">
+                    <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{a.who}</p>
+                    <p className="mt-1 truncate text-[13px] text-slate-500 dark:text-slate-400">{a.what}</p>
+                  </div>
+                </div>
+                <span className="hidden md:block">
+                  <Pill tone="muted">{a.category}</Pill>
                 </span>
-                <p className="min-w-0 flex-1 truncate text-sm text-slate-600 dark:text-slate-300">
-                  <span className="font-medium text-slate-900 dark:text-white">{a.who}</span> {a.what}
-                </p>
-                <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">{a.when}</span>
+                <span className="text-right text-xs tabular-nums text-slate-400 dark:text-slate-500">{a.when}</span>
               </li>
             ))}
           </ul>

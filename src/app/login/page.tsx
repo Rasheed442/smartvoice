@@ -187,7 +187,7 @@ export default function LoginPage() {
 
       {/* ───────── Form panel ───────── */}
       <main className="relative flex flex-1 items-center justify-center px-6 py-12 sm:px-10">
-        <div className="w-full max-w-[500px]">
+        <div className="w-full max-w-[600px]">
           {/* Compact brand mark for small screens */}
           <div className="sv-rise mb-10 flex items-center gap-2.5 lg:hidden">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500">
