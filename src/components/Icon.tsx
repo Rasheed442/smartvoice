@@ -1,0 +1,49 @@
+const PATHS = {
+  dashboard: ["M4 4h7v7H4z", "M13 4h7v4h-7z", "M13 11h7v9h-7z", "M4 14h7v6H4z"],
+  tenants: ["M5 20V5.5L13 3v17", "M13 8.5 19 10v10", "M3 20h18", "M9 8h.01", "M9 12h.01", "M9 16h.01"],
+  operators: ["M12 12v9", "M8.5 21h7", "M7.6 8a6 6 0 0 0 0 8", "M16.4 8a6 6 0 0 1 0 8", "M4.8 5.6a10 10 0 0 0 0 12.8", "M19.2 5.6a10 10 0 0 1 0 12.8", "M12 12.01h.01"],
+  connections: ["M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1", "M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"],
+  catalogue: ["M5 4h14v16H7a2 2 0 0 1-2-2z", "M9 8h6", "M9 12h6"],
+  subscribers: ["M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20", "M10 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z", "M20 20v-1.5a3.5 3.5 0 0 0-2.5-3.3", "M15.5 4.2a3.5 3.5 0 0 1 0 6.6"],
+  subscriptions: ["M3 6.5h18v12H3z", "M3 10.5h18", "M7 14.5h3"],
+  audit: ["M7 3h8l4 4v14H7z", "M15 3v4h4", "M10 12h6", "M10 16h6"],
+  check: ["M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z", "M8.5 12.5l2.5 2.5 4.5-5"],
+  alert: ["M12 3 2.5 20h19z", "M12 10v4", "M12 17h.01"],
+  search: ["M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z", "m20 20-3.5-3.5"],
+  bell: ["M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9", "M13.7 21a2 2 0 0 1-3.4 0"],
+  menu: ["M4 7h16", "M4 12h16", "M4 17h16"],
+  chevron: ["m6 9 6 6 6-6"],
+  user: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
+  settings: ["M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", "M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"],
+  logout: ["M9 20H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h4", "m16 16 4-4-4-4", "M20 12H9"],
+  wave: ["M5 10v4", "M9 7v10", "M13 4v16", "M17 8v8", "M21 11v2"]
+} as const;
+
+export type IconName = keyof typeof PATHS;
+
+export function Icon({
+  name,
+  className = "h-[18px] w-[18px]",
+  strokeWidth = 1.7
+}: {
+  name: IconName;
+  className?: string;
+  strokeWidth?: number;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {PATHS[name].map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+    </svg>
+  );
+}
