@@ -121,7 +121,7 @@ const SERIES: Record<
 };
 
 const STATUS = [
-  { label: "Active", pct: 82, color: "#8B5CF6" },
+  { label: "Active", pct: 82, color: "#6366F1" },
   { label: "Pending", pct: 10, color: "#818CF8" },
   { label: "Suspended", pct: 5, color: "#F5A623" },
   { label: "Expired", pct: 3, color: "#475569" }
@@ -168,10 +168,10 @@ const TENANT_STATUS_STYLE: Record<TenantStatus, { dot: string; text: string }> =
 };
 
 const ACTIVITY = [
-  { who: "Tenant Alpha", what: "provisioned 12 SIP trunks", when: "2m ago", category: "Provisioning", dot: "bg-violet-400" },
-  { who: "Tenant Beta", what: "updated call routing rules", when: "18m ago", category: "Routing", dot: "bg-indigo-400" },
-  { who: "System", what: "nightly backup completed", when: "1h ago", category: "System", dot: "bg-emerald-400" },
-  { who: "Tenant Gamma", what: "enabled failover gateway", when: "3h ago", category: "Failover", dot: "bg-slate-500" }
+  { who: "Tenant Alpha", what: "provisioned 12 SIP trunks", when: "2m ago", category: "Provisioning", dot: "bg-indigo-400" },
+  { who: "Tenant Beta", what: "updated call routing rules", when: "18m ago", category: "Routing", dot: "bg-indigo-300" },
+  { who: "System", what: "nightly backup completed", when: "1h ago", category: "System", dot: "bg-teal-400" },
+  { who: "Tenant Gamma", what: "enabled failover gateway", when: "3h ago", category: "Failover", dot: "bg-slate-400" }
 ];
 
 /* ────────────────────────────── Helpers ────────────────────────────── */
@@ -240,8 +240,8 @@ function niceStep(range: number) {
 const fmtDate = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 const card =
-  "rounded border border-slate-200/60 bg-white shadow-[0_1px_2px_rgba(30,27,75,0.03),0_10px_30px_-18px_rgba(79,70,229,0.18)] " +
-  "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
+  "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(99,102,241,0.12)] " +
+  "dark:border-white/[0.08] dark:bg-[#060A17]/90 dark:backdrop-blur-sm dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.03]";
 
 const mono = "font-mono";
 
@@ -274,7 +274,9 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
 
       <div className="relative flex items-start justify-between">
         <p className="text-xs font-light text-slate-400 dark:text-slate-500">{stat.label}</p>
-        <Icon name={stat.icon} className="h-4 w-4" strokeWidth={1.7} style={{ color: stat.accent }} />
+        <span style={{ color: stat.accent }}>
+          <Icon name={stat.icon} className="h-4 w-4" strokeWidth={1.7} />
+        </span>
       </div>
 
       <p className="relative mt-3 text-[38px] font-light leading-none tracking-tight tabular-nums text-slate-900 dark:text-white">
@@ -287,12 +289,12 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
       </p>
 
       {stat.progress !== undefined ? (
-        <div className="relative mt-4 h-[3px] w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="relative mt-4 h-[3px] w-full overflow-hidden rounded-full bg-slate-100 dark:bg-white/[0.06]">
           <div
             className="sv-fill h-full rounded-full"
             style={{
               width: `${stat.progress}%`,
-              background: "linear-gradient(90deg,#8B5CF6,#6366F1 45%,#10B981)"
+              background: "linear-gradient(90deg,#6366F1,#818CF8 45%,#2DD4BF)"
             }}
           />
         </div>
@@ -369,8 +371,8 @@ function GrowthChart({ range }: { range: string }) {
       <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" role="img" aria-label="Subscriber growth over time">
         <defs>
           <linearGradient id="sv-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.38" />
-            <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.16" />
+            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="#6366F1" stopOpacity="0.04" />
           </linearGradient>
         </defs>
 
@@ -399,8 +401,8 @@ function GrowthChart({ range }: { range: string }) {
             d={line}
             pathLength={1}
             fill="none"
-            stroke="#7C5CE8"
-            strokeWidth="1.75"
+            stroke="#6366F1"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="sv-draw"
@@ -419,16 +421,16 @@ function GrowthChart({ range }: { range: string }) {
         {/* Hover marker */}
         {hover !== null && (
           <g>
-            <line x1={xs[hover]} x2={xs[hover]} y1={PT} y2={base} className="stroke-violet-300 dark:stroke-violet-400/40" strokeWidth="1" strokeDasharray="3 4" />
-            <circle cx={xs[hover]} cy={ys[hover]} r="6" fill="#8B5CF6" opacity="0.18" />
-            <circle cx={xs[hover]} cy={ys[hover]} r="3.5" fill="#fff" stroke="#7C5CE8" strokeWidth="2" />
+            <line x1={xs[hover]} x2={xs[hover]} y1={PT} y2={base} className="stroke-indigo-300/60 dark:stroke-indigo-400/40" strokeWidth="1" strokeDasharray="3 4" />
+            <circle cx={xs[hover]} cy={ys[hover]} r="6" fill="#6366F1" opacity="0.15" />
+            <circle cx={xs[hover]} cy={ys[hover]} r="3.5" fill="#fff" stroke="#6366F1" strokeWidth="2" />
           </g>
         )}
       </svg>
 
       {hover !== null && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+14px)] whitespace-nowrap rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-[0_12px_28px_-10px_rgba(15,23,42,0.3)] dark:border-slate-700 dark:bg-[#0D1324]"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[calc(100%+14px)] whitespace-nowrap rounded-xl border border-slate-200/80 bg-white px-3 py-2 shadow-[0_12px_28px_-10px_rgba(15,23,42,0.25)] dark:border-white/[0.1] dark:bg-[#060A17]"
           style={{
             left: `${Math.min(88, Math.max(12, (xs[hover] / W) * 100))}%`,
             top: `${(ys[hover] / H) * 100}%`
@@ -439,7 +441,7 @@ function GrowthChart({ range }: { range: string }) {
             {pts[hover].toFixed(1)}K
           </p>
           {hover > 0 && (
-            <p className="text-[11px] tabular-nums text-emerald-600 dark:text-emerald-400">
+            <p className="text-[11px] tabular-nums text-teal-600 dark:text-teal-400">
               +{(pts[hover] - pts[hover - 1]).toFixed(2)}K
             </p>
           )}
