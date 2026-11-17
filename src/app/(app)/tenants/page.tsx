@@ -426,8 +426,9 @@ export default function TenantsPage() {
         {/* Header */}
         <header className="tn-rise flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-medium tracking-tight text-slate-900 dark:text-white">
-              Tenant Management
+
+            <h2 className="mt-3 text-[30px] font-light tracking-tight text-slate-900 dark:text-white">
+              Tenant <span className="font-medium text-indigo-600 dark:text-indigo-400">Management</span>
             </h2>
             <p className="mt-1 text-[15px] font-light text-slate-500 dark:text-slate-400">
               Configure and monitor platform tenants and their service assignments.
