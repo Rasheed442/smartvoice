@@ -240,7 +240,7 @@ function niceStep(range: number) {
 const fmtDate = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
 const card =
-  "rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_2px_rgba(30,27,75,0.03),0_10px_30px_-18px_rgba(79,70,229,0.18)] " +
+  "rounded border border-slate-200/60 bg-white shadow-[0_1px_2px_rgba(30,27,75,0.03),0_10px_30px_-18px_rgba(79,70,229,0.18)] " +
   "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
 
 const mono = "font-mono";

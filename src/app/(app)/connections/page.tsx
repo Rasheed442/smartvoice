@@ -48,8 +48,8 @@ const HUB_X = VB_W / 2;
 const mono = "font-mono";
 
 const card =
-  "rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_2px_rgba(30,27,75,0.03),0_10px_30px_-18px_rgba(79,70,229,0.18)] " +
-  "dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.02]";
+  "rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_30px_-18px_rgba(99,102,241,0.12)] " +
+  "dark:border-white/[0.08] dark:bg-[#060A17]/90 dark:backdrop-blur-sm dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.03]";
 
 /* ────────────────────────────── Icons ────────────────────────────── */
 
@@ -140,11 +140,11 @@ function NodeCard({
   onHover: (id: string | null) => void;
 }) {
   const tile = item.degraded
-    ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300"
-    : "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300";
+    ? "bg-amber-50 text-amber-600 ring-1 ring-inset ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/20"
+    : "bg-indigo-50 text-indigo-600 ring-1 ring-inset ring-indigo-500/20 dark:bg-indigo-500/20 dark:text-indigo-200 dark:ring-indigo-300/25 shadow-[0_0_14px_-4px_rgba(129,140,248,0.4)]";
 
   const icon = (
-    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tile}`}>
+    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${tile}`}>
       {item.role === "tenant" ? <UserIcon /> : <BuildingIcon />}
     </span>
   );
@@ -164,10 +164,10 @@ function NodeCard({
       onFocus={() => onHover(item.id)}
       onBlur={() => onHover(null)}
       className={
-        "flex h-[53px] items-center gap-3 rounded-xl border bg-white px-3 shadow-[0_1px_2px_rgba(30,27,75,0.04)] outline-none transition-all duration-200 " +
-        "hover:border-violet-200 hover:shadow-[0_8px_18px_-10px_rgba(109,40,217,0.4)] focus-visible:ring-2 focus-visible:ring-violet-500/40 " +
-        "dark:bg-slate-900 " +
-        (item.degraded ? "border-amber-200/70 dark:border-amber-400/20 " : "border-slate-200/70 dark:border-slate-700 ") +
+        "flex h-[53px] items-center gap-3 rounded-xl border bg-white px-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] outline-none transition-all duration-200 " +
+        "hover:border-indigo-200 hover:shadow-[0_8px_18px_-10px_rgba(99,102,241,0.4)] focus-visible:ring-2 focus-visible:ring-indigo-400/60 " +
+        "dark:bg-white/[0.03] dark:hover:border-indigo-400/30 dark:hover:bg-white/[0.05] " +
+        (item.degraded ? "border-amber-200/70 dark:border-amber-400/20 " : "border-slate-200/70 dark:border-white/[0.08] ") +
         (side === "right" ? "justify-end " : "") +
         (dim ? "opacity-35" : "opacity-100")
       }
@@ -197,23 +197,23 @@ function ProtocolCard({ p, dim, index }: { p: Protocol; dim: boolean; index: num
       <div className="flex items-start justify-between">
         <span
           className={
-            "flex h-9 w-9 items-center justify-center rounded-xl " +
+            "flex h-9 w-9 items-center justify-center rounded-xl ring-1 ring-inset " +
             (bad
-              ? "bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300"
-              : "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300")
+              ? "bg-amber-50 text-amber-600 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/20"
+              : "bg-indigo-50 text-indigo-600 ring-indigo-500/20 dark:bg-indigo-500/20 dark:text-indigo-200 dark:ring-indigo-300/25 shadow-[0_0_14px_-4px_rgba(129,140,248,0.4)]")
           }
         >
           <ProtocolIcon name={p.icon} />
         </span>
         <span
           className={
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] " +
+            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] ring-1 ring-inset " +
             (bad
-              ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
-              : "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300")
+              ? "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/20"
+              : "bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-400/10 dark:text-teal-300 dark:ring-teal-300/20")
           }
         >
-          <span className={`h-1 w-1 rounded-full ${bad ? "bg-amber-500" : "bg-emerald-500"}`} />
+          <span className={`h-1 w-1 rounded-full ${bad ? "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]" : "bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.9)]"}`} />
           {p.state}
         </span>
       </div>
@@ -221,7 +221,7 @@ function ProtocolCard({ p, dim, index }: { p: Protocol; dim: boolean; index: num
       <h3 className="mt-5 text-[14px] text-slate-900 dark:text-white">{p.name}</h3>
       <p className="mt-1 text-[11px] font-light text-slate-500 dark:text-slate-400">{p.connections} connections</p>
 
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
+      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
         <span className="text-[11px] text-slate-500 dark:text-slate-400">Avg latency</span>
         <span
           className={
@@ -249,7 +249,7 @@ export default function ConnectionMapPage() {
   const lineStyle = (n: NodeItem, i: number) => {
     const faded = [1, 0.9, 0.55, 0.5][i] ?? 0.5;
     const active = hover === n.id;
-    const color = n.degraded ? "#E08A5A" : "#7C5CF0";
+    const color = n.degraded ? "#E08A5A" : "#6366F1";
     const dimmed = (onlyDegraded && !n.degraded) || (hover !== null && !active);
     return {
       stroke: color,
@@ -262,7 +262,13 @@ export default function ConnectionMapPage() {
   const rightPath = (y: number) => `M${VB_W},${y} C${VB_W - HUB_X * 0.9},${y} ${VB_W - HUB_X * 0.7},${HUB_Y} ${HUB_X},${HUB_Y}`;
 
   return (
-    <div className="relative bg-[#F7F6FC] dark:bg-transparent">
+    <div className="relative min-h-full">
+      {/* ── Atmosphere ── */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 -top-20 h-[520px] w-[520px] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.18),transparent_65%)]" />
+        <div className="absolute right-0 top-32 h-[450px] w-[450px] bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.04),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.08),transparent_65%)]" />
+      </div>
+
       <style>{`
         @keyframes sv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-flow { to { stroke-dashoffset: -16; } }
@@ -280,9 +286,9 @@ export default function ConnectionMapPage() {
         {/* Header */}
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className={`text-[9px] uppercase tracking-[0.3em] text-violet-500 ${mono}`}>Live topology</p>
+            <p className={`text-[9px] uppercase tracking-[0.3em] text-indigo-400 dark:text-indigo-400 ${mono}`}>Live topology</p>
             <h2 className="mt-2.5 text-[26px] font-light tracking-tight text-slate-900 dark:text-white">
-              Connection <span className="font-medium text-violet-600">Map</span>
+              Connection <span className="font-medium text-indigo-600 dark:text-indigo-400">Map</span>
             </h2>
             <p className="mt-2 text-[12px] font-light text-slate-500 dark:text-slate-400">
               See how tenants route traffic through the platform to operator gateways.
@@ -293,7 +299,7 @@ export default function ConnectionMapPage() {
             <div
               role="tablist"
               aria-label="Connection filter"
-              className="inline-flex rounded-lg bg-white p-1 shadow-[0_1px_2px_rgba(30,27,75,0.04),0_8px_20px_-14px_rgba(79,70,229,0.3)] dark:bg-slate-900"
+              className="inline-flex rounded-lg bg-slate-100 p-1 dark:bg-white/[0.04] dark:ring-1 dark:ring-inset dark:ring-white/[0.06]"
             >
               {FILTERS.map((f) => {
                 const on = filter === f;
@@ -305,10 +311,10 @@ export default function ConnectionMapPage() {
                     aria-selected={on}
                     onClick={() => setFilter(f)}
                     className={
-                      `h-6 rounded-md px-3 text-[9px] uppercase tracking-[0.1em] outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-violet-500/40 ${mono} ` +
+                      `h-6 rounded-md px-3 text-[9px] uppercase tracking-[0.1em] outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${mono} ` +
                       (on
-                        ? "bg-violet-600 text-white shadow-sm"
-                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white")
+                        ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25 dark:bg-indigo-500"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100")
                     }
                   >
                     {f}
@@ -319,7 +325,7 @@ export default function ConnectionMapPage() {
 
             <button
               type="button"
-              className="inline-flex h-9 items-center gap-1.5 rounded bg-gradient-to-b from-violet-500 to-violet-600 px-4 text-[12px] text-white shadow-[0_10px_22px_-8px_rgba(109,40,217,0.75)] transition-[filter] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-offset-2"
+              className="inline-flex h-9 items-center gap-1.5 rounded bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 text-[12px] font-medium text-white shadow-[0_10px_22px_-8px_rgba(99,102,241,0.7)] ring-1 ring-white/20 transition-all hover:from-indigo-400 hover:to-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
             >
               <PlusIcon />
               New connection
@@ -391,9 +397,9 @@ export default function ConnectionMapPage() {
               >
                 <div
                   aria-hidden="true"
-                  className="sv-pulse pointer-events-none absolute -inset-8 rounded-full bg-violet-500/25 blur-2xl"
+                  className="sv-pulse pointer-events-none absolute -inset-8 rounded-full bg-indigo-500/20 blur-2xl"
                 />
-                <div className="relative flex h-[95px] w-[95px] flex-col items-center justify-center rounded-[26px] bg-gradient-to-br from-violet-500 to-indigo-700 text-white shadow-[0_18px_40px_-12px_rgba(91,76,230,0.8)] ring-1 ring-inset ring-white/20">
+                <div className="relative flex h-[95px] w-[95px] flex-col items-center justify-center rounded-[26px] bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-[0_18px_40px_-12px_rgba(99,102,241,0.75)] ring-1 ring-inset ring-white/25">
                   <WaveIcon />
                   <p className="mt-2 text-[10px] font-medium">SmartVoice</p>
                   <p className={`mt-0.5 text-[7px] uppercase tracking-[0.18em] text-white/60 ${mono}`}>Hub</p>

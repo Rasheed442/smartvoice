@@ -205,7 +205,7 @@ const Chevron = ({ dir }: { dir: "left" | "right" }) => (
 function ServiceCard({ s, index }: { s: Service; index: number }) {
   return (
     <article
-      className="sv-rise overflow-hidden rounded-2xl border border-slate-200/50 bg-white shadow-[0_1px_2px_rgba(30,27,75,0.04),0_14px_34px_-18px_rgba(79,70,229,0.28)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-slate-800 dark:bg-[#0A0F1E] dark:shadow-none"
+      className="sv-rise overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_14px_34px_-18px_rgba(99,102,241,0.2)] transition-transform duration-300 hover:-translate-y-0.5 dark:border-white/[0.08] dark:bg-[#060A17]/90 dark:shadow-none dark:ring-1 dark:ring-inset dark:ring-white/[0.03]"
       style={{ animationDelay: `${index * 60}ms` }}
     >
       {/* Gradient header */}
@@ -240,27 +240,27 @@ function ServiceCard({ s, index }: { s: Service; index: number }) {
           {s.capabilities.map((c) => (
             <span
               key={c}
-              className="rounded-md bg-violet-50 px-2 py-1 text-[10px] text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
+              className="rounded-md bg-indigo-50 px-2 py-1 text-[10px] text-indigo-700 ring-1 ring-inset ring-indigo-200/60 dark:bg-indigo-400/10 dark:text-indigo-300 dark:ring-indigo-300/20"
             >
               {c}
             </span>
           ))}
         </div>
 
-        <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
+        <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/[0.06]">
           <span
             className={
               "flex items-center gap-1.5 text-[11px] " +
-              (s.status === "Active" ? "text-emerald-600 dark:text-emerald-400" : "text-amber-600 dark:text-amber-400")
+              (s.status === "Active" ? "text-teal-600 dark:text-teal-400" : "text-amber-600 dark:text-amber-400")
             }
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${s.status === "Active" ? "bg-emerald-500" : "bg-amber-500"}`} />
+            <span className={`h-1.5 w-1.5 rounded-full ${s.status === "Active" ? "bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.9)]" : "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]"}`} />
             {s.status}
           </span>
           <button
             type="button"
             aria-label={`Configure ${s.name}`}
-            className="h-8 rounded-lg bg-[#12111F] px-3.5 text-[11px] text-white transition-colors hover:bg-[#241f3d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-offset-2 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            className="h-8 rounded-lg bg-[#060A17] px-3.5 text-[11px] text-white transition-colors hover:bg-indigo-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 dark:bg-white/[0.08] dark:hover:bg-indigo-500/30 dark:ring-1 dark:ring-inset dark:ring-white/[0.1]"
           >
             Configure service
           </button>
@@ -286,7 +286,13 @@ export default function ProductCataloguePage() {
   const visible = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
   return (
-    <div className="relative bg-[#F7F6FC] dark:bg-transparent">
+    <div className="relative min-h-full">
+      {/* ── Atmosphere ── */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 -top-20 h-[520px] w-[520px] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.18),transparent_65%)]" />
+        <div className="absolute right-0 top-32 h-[450px] w-[450px] bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.04),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.08),transparent_65%)]" />
+      </div>
+
       <style>{`
         @keyframes sv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .sv-rise { opacity: 0; animation: sv-rise .55s cubic-bezier(.22,1,.36,1) forwards; }
@@ -297,9 +303,9 @@ export default function ProductCataloguePage() {
         {/* Header */}
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className={`text-[9px] uppercase tracking-[0.3em] text-violet-500 ${mono}`}>Value-added services</p>
+            <p className={`text-[9px] uppercase tracking-[0.3em] text-indigo-400 ${mono}`}>Value-added services</p>
             <h2 className="mt-2.5 text-[26px] font-light tracking-tight text-slate-900 dark:text-white">
-              Product <span className="font-medium text-violet-600">Catalogue</span>
+              Product <span className="font-medium text-indigo-600 dark:text-indigo-400">Catalogue</span>
             </h2>
             <p className="mt-2 text-[12px] font-light text-slate-500 dark:text-slate-400">
               Define and manage the Value-Added Services offered on the platform.
@@ -307,7 +313,7 @@ export default function ProductCataloguePage() {
           </div>
           <button
             type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded bg-violet-700 px-4 text-[12px] text-white cursor-pointer transition-[filter] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 focus-visible:ring-offset-2"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 text-[12px] font-medium text-white cursor-pointer shadow-[0_8px_20px_-8px_rgba(99,102,241,0.7)] ring-1 ring-white/20 transition-all hover:from-indigo-400 hover:to-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
           >
             <span aria-hidden="true" className="text-[18px] leading-none">+</span>
             Create new service
@@ -318,7 +324,7 @@ export default function ProductCataloguePage() {
         <div
           role="tablist"
           aria-label="Service category"
-          className="inline-flex w-fit max-w-full overflow-x-auto rounded-xl bg-white p-1 shadow-[0_1px_2px_rgba(30,27,75,0.04),0_8px_22px_-14px_rgba(79,70,229,0.25)] dark:bg-slate-900"
+          className="inline-flex w-fit max-w-full overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/[0.04] dark:ring-1 dark:ring-inset dark:ring-white/[0.06]"
         >
           {TABS.map((t) => {
             const on = tab === t;
@@ -333,10 +339,10 @@ export default function ProductCataloguePage() {
                   setPage(1);
                 }}
                 className={
-                  "h-8 shrink-0 rounded cursor-pointer px-4 text-[12px] outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-violet-500/40 " +
+                  "h-8 shrink-0 rounded cursor-pointer px-4 text-[12px] outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/60 " +
                   (on
-                    ? "bg-violet-600 to-violet-600 text-white "
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white")
+                    ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25 dark:bg-indigo-500"
+                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100")
                 }
               >
                 {t}
@@ -357,7 +363,7 @@ export default function ProductCataloguePage() {
             ))}
           </section>
         ) : (
-          <p className="rounded-2xl bg-white py-16 text-center text-[13px] text-slate-400 dark:bg-slate-900">
+          <p className="rounded-2xl bg-white py-16 text-center text-[13px] text-slate-400 dark:bg-white/[0.03]">
             No services in this category yet. Create one to get started.
           </p>
         )}
@@ -366,14 +372,14 @@ export default function ProductCataloguePage() {
         {pages > 1 && (
           <nav
             aria-label="Pagination"
-            className="mx-auto mt-1 flex items-center gap-1 rounded-xl bg-white p-1.5 shadow-[0_1px_2px_rgba(30,27,75,0.04),0_8px_22px_-14px_rgba(79,70,229,0.25)] dark:bg-slate-900"
+            className="mx-auto mt-1 flex items-center gap-1 rounded-xl bg-slate-100 p-1.5 dark:bg-white/[0.04] dark:ring-1 dark:ring-inset dark:ring-white/[0.06]"
           >
             <button
               type="button"
               aria-label="Previous page"
               disabled={current === 1}
               onClick={() => setPage(current - 1)}
-              className="flex h-8 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors enabled:hover:bg-slate-50 enabled:hover:text-slate-800 disabled:opacity-50 dark:enabled:hover:bg-slate-800"
+              className="flex h-8 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors enabled:hover:bg-white enabled:hover:text-slate-800 disabled:opacity-50 dark:enabled:hover:bg-white/[0.06] dark:enabled:hover:text-slate-200"
             >
               <Chevron dir="left" />
             </button>
@@ -385,7 +391,7 @@ export default function ProductCataloguePage() {
               aria-label="Next page"
               disabled={current === pages}
               onClick={() => setPage(current + 1)}
-              className="flex h-8 w-9 items-center justify-center rounded-lg text-slate-800 transition-colors enabled:hover:bg-slate-50 disabled:text-slate-300 dark:text-slate-200 dark:enabled:hover:bg-slate-800"
+              className="flex h-8 w-9 items-center justify-center rounded-lg text-slate-800 transition-colors enabled:hover:bg-white disabled:text-slate-300 dark:text-slate-200 dark:enabled:hover:bg-white/[0.06]"
             >
               <Chevron dir="right" />
             </button>
