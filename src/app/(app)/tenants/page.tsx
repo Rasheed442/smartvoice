@@ -187,9 +187,9 @@ function FilterSelect({
         aria-label={label}
         className={`${control} flex w-full cursor-pointer items-center justify-between gap-2 pl-3.5 pr-2 text-left`}
       >
-        <span className="truncate">{selected?.label}</span>
+        <span className="truncate text-[14px] font-light">{selected?.label}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 ${open ? "rotate-180 text-indigo-500" : ""}`}
+          className={`h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 ${open ? "rotate-180 text-indigo-500" : ""}`}
         />
       </button>
 
@@ -271,7 +271,7 @@ function RowMenu({ tenant }: { tenant: Tenant }) {
   };
 
   const item =
-    "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors duration-150";
+    "flex w-full items-center gap-2.5 cursor-pointer rounded-lg px-3 py-2 text-sm transition-colors duration-150";
 
   return (
     <>
@@ -500,14 +500,14 @@ export default function TenantsPage() {
               onClick={() => setShowMore((v) => !v)}
               aria-expanded={showMore}
               className={
-                `${control} inline-flex cursor-pointer items-center gap-2 px-3.5 font-medium ` +
+                `${control} inline-flex cursor-pointer items-center gap-2 px-3.5 font-light text-[13px] ` +
                 (showMore || extraActive > 0
-                  ? "border-indigo-300 bg-indigo-50/70 text-indigo-700 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
-                  : "text-slate-600 dark:text-slate-300")
+                  ? "border-indigo-300 bg-indigo-50/70 dark:border-indigo-400/40 dark:bg-indigo-500/10 dark:text-indigo-300"
+                  : "")
               }
             >
-              <Icon name="filter" className="h-4 w-4" />
-              More filters
+              <Icon name="filter" className="h-3 w-3" />
+              More filter
               {extraActive > 0 && (
                 <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[11px] font-medium text-white">
                   {extraActive}
@@ -596,15 +596,15 @@ export default function TenantsPage() {
                             .join("")}
                         </span>
                         <div className="min-w-0 leading-tight">
-                          <p className="text-[14.5px] font-medium text-slate-900 dark:text-white">{t.name}</p>
+                          <p className="text-[14.5px] font-light text-slate-600 dark:text-white">{t.name}</p>
                           <p className="mt-1 font-mono text-xs text-slate-400 dark:text-slate-500">{t.code}</p>
                         </div>
                       </div>
                     </td>
 
                     <td className="px-5 py-4">
-                      <p className="text-sm text-slate-800 dark:text-slate-200">{t.contact}</p>
-                      <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">{t.email}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-200">{t.contact}</p>
+                      <p className="mt-0.5 text-[13px] font-thin text-slate-600 dark:text-slate-600">{t.email}</p>
                     </td>
 
                     <td className="px-5 py-4">
@@ -638,11 +638,11 @@ export default function TenantsPage() {
                       <StatusPill status={t.status} />
                     </td>
 
-                    <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-slate-400">
+                    <td className="whitespace-nowrap px-5 py-4 text-[13px] text-slate-400 dark:text-slate-400">
                       {t.created}
                     </td>
 
-                    <td className="px-5 py-4">
+                    <td className="px-5 py-4 cursor-pointer">
                       <div className="flex justify-end">
                         <RowMenu tenant={t} />
                       </div>

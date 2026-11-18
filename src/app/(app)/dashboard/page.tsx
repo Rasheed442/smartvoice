@@ -29,9 +29,9 @@ type Stat = {
 const STATS: Stat[] = [
   {
     label: "Total tenants",
-    value: 24,
+    value: 0,
     decimals: 0,
-    delta: "+2",
+    delta: "0",
     context: "this month",
     tone: "good",
     trend: "up",
@@ -41,10 +41,10 @@ const STATS: Stat[] = [
   },
   {
     label: "Active subscribers",
-    value: 842.6,
+    value: 0,
     decimals: 1,
     suffix: "K",
-    delta: "12.4%",
+    delta: "0%",
     context: "vs last month",
     tone: "good",
     trend: "up",
@@ -54,7 +54,7 @@ const STATS: Stat[] = [
   },
   {
     label: "Provisioning success",
-    value: 98.2,
+    value: 0,
     decimals: 1,
     suffix: "%",
     suffixMuted: true,
@@ -65,9 +65,9 @@ const STATS: Stat[] = [
   },
   {
     label: "Failed transactions",
-    value: 142,
+    value: 0,
     decimals: 0,
-    delta: "12",
+    delta: "0",
     context: "vs yesterday",
     tone: "bad",
     trend: "up",
@@ -162,8 +162,8 @@ const TENANTS: { name: string; subs: number; quota: number; status: TenantStatus
 ];
 
 const TENANT_STATUS_STYLE: Record<TenantStatus, { dot: string; text: string }> = {
-  Active: { dot: "bg-emerald-500", text: "text-emerald-600 dark:text-emerald-400" },
-  "Near quota": { dot: "bg-amber-500", text: "text-amber-600 dark:text-amber-400" },
+  Active: { dot: "bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.9)]", text: "text-teal-600 dark:text-teal-400" },
+  "Near quota": { dot: "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]", text: "text-amber-600 dark:text-amber-400" },
   Onboarding: { dot: "bg-slate-300 dark:bg-slate-600", text: "text-slate-400 dark:text-slate-500" }
 };
 
@@ -456,7 +456,7 @@ function RangeSwitch({ value, onChange }: { value: string; onChange: (v: string)
     <div
       role="tablist"
       aria-label="Time range"
-      className="inline-flex rounded-lg bg-violet-100 cursor-pointer p-0.5 dark:bg-violet-800/70"
+      className="inline-flex rounded-lg bg-slate-100 cursor-pointer p-0.5 dark:bg-white/[0.04] dark:ring-1 dark:ring-inset dark:ring-white/[0.06]"
     >
       {RANGES.map((r) => {
         const on = value === r.key;
@@ -468,9 +468,9 @@ function RangeSwitch({ value, onChange }: { value: string; onChange: (v: string)
             aria-selected={on}
             onClick={() => onChange(r.key)}
             className={
-              `h-6 rounded-md px-2.5 text-[11px] cursor-pointer outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-violet-500/40 ${mono} ` +
+              `h-6 rounded-md px-2.5 text-[11px] cursor-pointer outline-none transition-all duration-200 focus-visible:ring-2 focus-visible:ring-indigo-400/60 ${mono} ` +
               (on
-                ? "bg-white text-violet-600 shadow-sm dark:bg-slate-700 dark:text-white"
+                ? "bg-white text-indigo-600 shadow-sm dark:bg-white/[0.08] dark:text-indigo-300"
                 : "text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200")
             }
           >
@@ -504,7 +504,7 @@ function StatusDonut() {
     <div className="flex flex-col items-center">
       <div className="relative h-[210px] w-[210px]">
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" role="img" aria-label="Subscription status distribution">
-          <circle cx="100" cy="100" r={R} fill="none" strokeWidth="14" className="stroke-slate-100 dark:stroke-slate-800/70" />
+          <circle cx="100" cy="100" r={R} fill="none" strokeWidth="14" className="stroke-slate-100 dark:stroke-white/[0.06]" />
           {STATUS.map((s, i) => {
             const len = (s.pct / 100) * C - GAP;
             const offset = (cum / 100) * C;
@@ -548,7 +548,7 @@ function StatusDonut() {
             onPointerLeave={() => setActive(null)}
             className={
               "flex items-center justify-between rounded-lg px-2 py-1.5 text-[11px] transition-colors duration-200 " +
-              (active === i ? "bg-slate-50 dark:bg-slate-800/40" : "")
+              (active === i ? "bg-slate-50 dark:bg-white/[0.04]" : "")
             }
           >
             <span className="flex items-center gap-2 text-slate-600 text-[12px] font-light dark:text-slate-400">
@@ -570,7 +570,7 @@ function HealthCell({ h, index }: { h: Health; index: number }) {
   return (
     <div
       className={
-        "sv-rise px-5 py-4 " + (ok ? "bg-white dark:bg-[#0A0F1E]" : "bg-amber-50/70 dark:bg-[#14110A]")
+        "sv-rise px-5 py-4 " + (ok ? "bg-white dark:bg-[#060A17]/90" : "bg-amber-50/70 dark:bg-amber-950/20")
       }
       style={{ animationDelay: `${500 + index * 50}ms` }}
     >
@@ -578,10 +578,10 @@ function HealthCell({ h, index }: { h: Health; index: number }) {
         <div className="flex min-w-0 items-center gap-3">
           <span
             className={
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg " +
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset " +
               (ok
-                ? "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300"
-                : "bg-amber-100/70 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300")
+                ? "bg-indigo-50 text-indigo-600 ring-indigo-500/20 dark:bg-indigo-500/15 dark:text-indigo-300 dark:ring-indigo-300/20"
+                : "bg-amber-100/70 text-amber-700 ring-amber-500/20 dark:bg-amber-400/10 dark:text-amber-300 dark:ring-amber-300/20")
             }
           >
             <Icon name={h.icon} className="h-4 w-4" strokeWidth={1.7} />
@@ -595,10 +595,10 @@ function HealthCell({ h, index }: { h: Health; index: number }) {
         <span
           className={
             `inline-flex shrink-0 items-center gap-1.5 text-[9px] uppercase tracking-[0.1em] ${mono} ` +
-            (ok ? "text-emerald-600 dark:text-emerald-400" : "text-amber-700 dark:text-amber-300")
+            (ok ? "text-teal-600 dark:text-teal-400" : "text-amber-700 dark:text-amber-300")
           }
         >
-          <span className={`h-1 w-1 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-500"}`} />
+          <span className={`h-1 w-1 rounded-full ${ok ? "bg-teal-400 shadow-[0_0_6px_rgba(45,212,191,0.9)]" : "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.9)]"}`} />
           {ok ? "Operational" : "Degraded"}
         </span>
       </div>
@@ -622,7 +622,7 @@ function HealthCell({ h, index }: { h: Health; index: number }) {
             title={c === "o" ? "Healthy" : "Degraded"}
             className={
               "sv-bar flex-1 rounded-[2px] " +
-              (c === "o" ? "bg-violet-200 dark:bg-violet-400/30" : "bg-amber-400")
+              (c === "o" ? "bg-indigo-200 dark:bg-indigo-400/25" : "bg-amber-400")
             }
             style={{ animationDelay: `${550 + index * 50 + i * 12}ms` }}
           />
@@ -661,7 +661,13 @@ export default function DashboardPage() {
   }, [refreshing]);
 
   return (
-    <div className="relative bg-[#F7F6FC] dark:bg-transparent">
+    <div className="relative min-h-full">
+      {/* ── Atmosphere ── */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 -top-20 h-[520px] w-[520px] bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.08),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.18),transparent_65%)]" />
+        <div className="absolute right-0 top-32 h-[450px] w-[450px] bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.04),transparent_65%)] dark:bg-[radial-gradient(ellipse_at_center,rgba(45,212,191,0.08),transparent_65%)]" />
+      </div>
+
       <style>{`
         @keyframes sv-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes sv-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -690,7 +696,7 @@ export default function DashboardPage() {
               Platform overview
             </p>
             <h2 className="mt-2 text-[26px] font-light tracking-tight text-slate-900 dark:text-white">
-              Everything running, <span className="text-violet-700">at a glance.</span>
+              Everything running, <span className="text-indigo-600 dark:text-indigo-400">at a glance.</span>
             </h2>
           </div>
           <div className="flex items-center gap-3">
@@ -698,7 +704,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={refresh}
-              className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+              className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 text-[11px] text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-slate-300 dark:hover:border-white/15 dark:hover:text-white"
             >
               <svg
                 viewBox="0 0 16 16"
@@ -747,7 +753,7 @@ export default function DashboardPage() {
               <GrowthChart range={range} />
             </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <div className="mt-4 grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 dark:border-white/[0.06]">
               {[
                 { k: "Net new", v: `+${netNew.toFixed(1)}K` },
                 { k: `Average / ${cfg.unit}`, v: `${avgAdded.toFixed(1)}K` },
@@ -787,15 +793,15 @@ export default function DashboardPage() {
               className={
                 `rounded-md border px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] ${mono} ` +
                 (okCount === HEALTH.length
-                  ? "border-emerald-200 text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-400"
-                  : "border-emerald-200 text-emerald-600 dark:border-emerald-400/20 dark:text-emerald-400")
+                  ? "border-teal-200 text-teal-600 dark:border-teal-400/20 dark:text-teal-400"
+                  : "border-teal-200 text-teal-600 dark:border-teal-400/20 dark:text-teal-400")
               }
             >
               {okCount} / {HEALTH.length} operational
             </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-2 lg:grid-cols-3 dark:border-slate-800 dark:bg-slate-800/80">
+          <div className="grid grid-cols-1 gap-px border-t border-slate-100 bg-slate-100 sm:grid-cols-2 lg:grid-cols-3 dark:border-white/[0.06] dark:bg-white/[0.06]">
             {HEALTH.map((h, i) => (
               <HealthCell key={h.name} h={h} index={i} />
             ))}
@@ -809,7 +815,7 @@ export default function DashboardPage() {
               <h3 className="text-[14px] text-slate-900 dark:text-white">Top tenants</h3>
               <button
                 type="button"
-                className="text-[11px] text-violet-500 transition-colors hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/40 dark:hover:text-violet-300"
+                className="text-[11px] text-indigo-500 transition-colors hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60 dark:text-indigo-400 dark:hover:text-indigo-300"
               >
                 View all →
               </button>
@@ -818,7 +824,7 @@ export default function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[480px] text-left">
                 <thead>
-                  <tr className={`bg-[#F7F6FC] text-[9px] uppercase tracking-[0.12em] text-slate-400 dark:bg-white/[0.015] dark:text-slate-500 ${mono}`}>
+                  <tr className={`border-b border-slate-100 bg-slate-50/80 text-[9px] uppercase tracking-[0.12em] text-slate-400 dark:border-white/[0.06] dark:bg-white/[0.02] dark:text-slate-500 ${mono}`}>
                     <th className="px-6 py-2.5 font-normal">Tenant</th>
                     <th className="px-3 py-2.5 font-normal">Subscribers</th>
                     <th className="px-3 py-2.5 font-normal">Quota</th>
